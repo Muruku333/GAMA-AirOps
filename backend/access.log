@@ -1,0 +1,6 @@
+::1 - - [09/Dec/2023:10:11:49 +0000] "OPTIONS /auth/login HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+::1 - - [09/Dec/2023:10:11:50 +0000] "POST /auth/login HTTP/1.1" 200 591 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+::1 - - [09/Dec/2023:10:11:51 +0000] "GET /api/dashboard HTTP/1.1" 404 65 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+::1 - - [09/Dec/2023:10:36:55 +0000] "OPTIONS /auth/login HTTP/1.1" 204 0 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+::1 - - [09/Dec/2023:10:36:55 +0000] "POST /auth/login HTTP/1.1" 200 591 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
+::1 - - [09/Dec/2023:10:36:56 +0000] "GET /api/dashboard HTTP/1.1" 404 65 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
