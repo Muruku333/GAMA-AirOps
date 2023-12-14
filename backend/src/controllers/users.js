@@ -49,7 +49,7 @@ const usersController = {
     },
     createUser : async (req, res)=>{
         try {
-            const errors = validationResult(req);;
+            const errors = validationResult(req);
             if(!errors.isEmpty()){
                 return status.ResponseStatus(res, 400, "Validation Failed", errors);
             };

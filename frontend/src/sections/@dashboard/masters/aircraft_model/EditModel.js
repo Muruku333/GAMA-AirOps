@@ -9,7 +9,7 @@ import {
   TextField,
   Box,
   Breadcrumbs,
-  styled
+  styled,
 } from "@mui/material";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
@@ -29,27 +29,60 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import AddIcon from "@mui/icons-material/Add";
 // Components -----------------------------------------------
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
 
-const SubmitButton = styled(Button)(({theme})=>({
-    backgroundColor:theme.palette.success.dark,
-    color:theme.palette.common.white,
-    "&:hover":{
-      backgroundColor:theme.palette.success.darker,
-    }
-  }));
+const API_URL = process.env.REACT_APP_API_URL;
+
+const SubmitButton = styled(Button)(({ theme }) => ({
+  backgroundColor: theme.palette.success.dark,
+  color: theme.palette.common.white,
+  "&:hover": {
+    backgroundColor: theme.palette.success.darker,
+  },
+}));
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
 export default function EditModel(props) {
-  const  {optionState,  handleClickEditModel, idToEdit, DB_URL, loggedInUserId } = props;
+  const { optionState, handleClickEditModel, setStatus, idToEdit, loggedUser } = props;
   const [modelData, setModelData] = useState({
-    model_name: "",
-    single_engine: false,
-    wing_type: "Fixed Wing",
+    modelName: "",
+    singleEngine: false,
+    wingType: "Fixed Wing",
   });
   const [validationErrors, setValidationErrors] = useState({});
+
+  useEffect( ()=>{
+    const fetchData = async() =>{
+      try {
+        await axios.get(`${API_URL}/api/aircraft_models/${idToEdit}`).then((response)=>{
+          if(response.data.status){
+            const {model_name,single_engine,wing_type} = response.data.results[0];
+            setModelData({
+              modelName:model_name,
+              singleEngine:single_engine,
+              wingType:wing_type,
+            });
+          }
+        }).catch((error)=>{
+          setStatus({
+            open:true,
+            type:"error",
+            message:error.response.data.message,
+          })
+        });
+      } catch (error) {
+        setStatus({
+          open:true,
+          type:'error',
+          message:"Network connection error",
+        });
+      }
+    }
+    fetchData();
+  },[]);
 
   const handleInputChange = (field, value) => {
     // const updatedModelData = { ...modelData };
@@ -61,42 +94,70 @@ export default function EditModel(props) {
   };
 
   const handleChangeWingType = (event) => {
-    handleInputChange("wing_type", event.target.value);
+    handleInputChange("wingType", event.target.value);
   };
 
   const handleClose = (event, reason) => {
-    if ( reason && ( reason == "backdropClick" || reason == "escapeKeyDown" ) )
-        return;
-        handleClickEditModel();
-}
+    if (reason && (reason == "backdropClick" || reason == "escapeKeyDown"))
+      return;
+    handleClickEditModel();
+  };
 
-const validateAircraftModelData=()=>{
-    let errors={};
+  const validateAircraftModelData = () => {
+    let errors = {};
 
-    if(!Boolean(modelData.model_name))
-      errors.model_name="Model Name is required.";
+    if (!Boolean(modelData.modelName))
+      errors.modelName = "Model Name is required.";
 
     return errors;
-  }
+  };
 
-  const handleSubmitAircraftModel =(event)=>{
-        // console.log('It worked');
-        const errors=validateAircraftModelData();
-        if (Object.keys(errors).length > 0) {
-          setValidationErrors(errors);
-          return;
+  const handleSubmitAircraftModel = async (event) => {
+    // console.log('It worked');
+    const errors = validateAircraftModelData();
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    };
+
+    try {
+      await axios.put(`${API_URL}/api/aircraft_models/${idToEdit}`,{...modelData,modifiedBy:loggedUser.user_id}).then((response)=>{
+        if(response.data.status){
+          setStatus({
+            open:true,
+            type:"success",
+            message:response.data.message,
+          });
+          handleClickEditModel();
         }
-  }
+      }).catch((error)=>{
+        setStatus({
+          open:false,
+          type:"error",
+          message:error.response.data.message,
+        });
+        handleClickEditModel();
+      });
+    } catch (error) {
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network connection error",
+      });
+    }
+
+  };
 
   return (
     <>
       <Helmet>
         <title> Aircraft Model Edit | GAMA AirOps</title>
       </Helmet>
+
       <Dialog
         fullWidth
-        maxWidth='sm'
-        open={optionState.canEdot}
+        maxWidth="sm"
+        open={optionState.canEdit}
         TransitionComponent={Transition}
         keepMounted
         onClose={handleClose}
@@ -104,7 +165,7 @@ const validateAircraftModelData=()=>{
       >
         <DialogTitle>{"Aircraft Model Edit"}</DialogTitle>
         <DialogContent>
-        <Box mt={1} sx={{ flexGrow: 1 }}>
+          <Box mt={1} sx={{ flexGrow: 1 }}>
             <Grid
               container
               rowSpacing={2}
@@ -118,21 +179,34 @@ const validateAircraftModelData=()=>{
                   fullWidth
                   required
                   label="Model Name"
-                  value={modelData.model_name}
+                  value={modelData.modelName}
                   onChange={(event) => {
-                    handleInputChange("model_name", event.target.value);
+                    handleInputChange("modelName", event.target.value);
                   }}
-                  error={Boolean(validationErrors.model_name)}
-                  helperText={validationErrors.model_name}
+                  error={Boolean(validationErrors.modelName)}
+                  helperText={validationErrors.modelName}
                 />
               </Grid>
               <Grid item xs={4} sm={4} md={5}>
-                <FormGroup>
+              <FormControl component="fieldset">
+      <FormLabel component="legend">Engine Type</FormLabel>
+      <FormGroup aria-label="position" row>
                   <FormControlLabel
-                    control={<Checkbox checked={modelData.single_engine} onChange={(e)=>{handleInputChange('single_engine',!modelData.single_engine)}}/>}
+                    control={
+                      <Checkbox
+                        checked={modelData.singleEngine}
+                        onChange={(e) => {
+                          handleInputChange(
+                            "singleEngine",
+                            !modelData.singleEngine
+                          );
+                        }}
+                      />
+                    }
                     label="Single Engine"
                   />
                 </FormGroup>
+                </FormControl>
               </Grid>
               <Grid item xs={4} sm={8} md={7}>
                 <FormControl>
@@ -143,7 +217,7 @@ const validateAircraftModelData=()=>{
                     row
                     aria-labelledby="demo-controlled-radio-buttons-group"
                     name="controlled-radio-buttons-group"
-                    value={modelData.wing_type}
+                    value={modelData.wingType}
                     onChange={handleChangeWingType}
                   >
                     <FormControlLabel
@@ -163,8 +237,12 @@ const validateAircraftModelData=()=>{
           </Box>
         </DialogContent>
         <DialogActions>
-          <SubmitButton color="success" variant="contained">Save</SubmitButton>
-          <Button variant="contained" color="error" onClick={handleClose}>Close</Button>
+          <SubmitButton color="success" variant="contained" onClick={handleSubmitAircraftModel}>
+            Save
+          </SubmitButton>
+          <Button variant="contained" color="error" onClick={handleClose}>
+            Close
+          </Button>
         </DialogActions>
       </Dialog>
     </>

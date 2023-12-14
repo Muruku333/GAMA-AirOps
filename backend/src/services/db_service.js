@@ -4,7 +4,9 @@ const dbConfig = require('../configs/db_configs');
 const dbService ={
   query: async (sql, params) => {
     const connection = mysql.createConnection(dbConfig).promise();
-    return await connection.query(sql, params);
+    const result = await connection.query(sql, params);
+    await connection.end();
+    return result;
   },
   execute: async (sql, params) => {
     const connection = mysql.createConnection(dbConfig).promise();

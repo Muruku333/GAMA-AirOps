@@ -29,6 +29,9 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import AddIcon from "@mui/icons-material/Add";
 // Components -----------------------------------------------
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SubmitButton = styled(Button)(({ theme }) => ({
   backgroundColor: theme.palette.success.dark,
@@ -42,13 +45,15 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-export default function ListModel(props) {
-  const { optionState, handleClickNewModel, DB_URL, loggedInUserId } = props;
+export default function CreateModel(props) {
+  const { optionState, handleClickNewModel, setStatus, loggedUser} = props;
+
   const [modelData, setModelData] = useState({
-    model_name: "",
-    single_engine: false,
-    wing_type: "Fixed Wing",
+    modelName: "",
+    singleEngine: false,
+    wingType: "Fixed Wing",
   });
+
   const [validationErrors, setValidationErrors] = useState({});
 
   const handleInputChange = (field, value) => {
@@ -61,7 +66,7 @@ export default function ListModel(props) {
   };
 
   const handleChangeWingType = (event) => {
-    handleInputChange("wing_type", event.target.value);
+    handleInputChange("wingType", event.target.value);
   };
 
   const handleClose = (event, reason) => {
@@ -73,13 +78,13 @@ export default function ListModel(props) {
   const validateAircraftModelData=()=>{
     let errors={};
 
-    if(!Boolean(modelData.model_name))
-      errors.model_name="Model Name is required.";
+    if(!Boolean(modelData.modelName))
+      errors.modelName="Model Name is required.";
 
     return errors;
   }
 
-  const handleSubmitAircraftModel =(event)=> {
+  const handleSubmitAircraftModel = async (event)=> {
         // console.log('It worked');
         const errors=validateAircraftModelData();
         if (Object.keys(errors).length > 0) {
@@ -87,6 +92,22 @@ export default function ListModel(props) {
           return;
         }
         console.log(modelData);
+        await axios.post(`${API_URL}/api/aircraft_models`,{...modelData,...{createdBy:loggedUser.user_id}}).then((response)=>{
+          // console.log(response);
+          handleClickNewModel();
+          setStatus({
+            open:true,
+            type:'success',
+            message:response.data.message
+          });
+        }).catch((error)=>{
+          console.log(error);
+          setStatus({
+            open:true,
+            type:'error',
+            message:error.response.data.message,
+          });
+        });
   }
 
   return (
@@ -120,12 +141,12 @@ export default function ListModel(props) {
                   fullWidth
                   required
                   label="Model Name"
-                  value={modelData.model_name}
+                  value={modelData.modelName}
                   onChange={(event) => {
-                    handleInputChange("model_name", event.target.value);
+                    handleInputChange("modelName", event.target.value);
                   }}
-                  error={Boolean(validationErrors.model_name)}
-                  helperText={validationErrors.model_name}
+                  error={Boolean(validationErrors.modelName)}
+                  helperText={validationErrors.modelName}
                 />
               </Grid>
               <Grid item xs={4} sm={4} md={5}>
@@ -133,7 +154,7 @@ export default function ListModel(props) {
       <FormLabel component="legend">Engine Type</FormLabel>
       <FormGroup aria-label="position" row>
                   <FormControlLabel
-                    control={<Checkbox checked={modelData.single_engine} onChange={(e)=>{handleInputChange('single_engine',!modelData.single_engine)}}/>}
+                    control={<Checkbox checked={modelData.singleEngine} onChange={(e)=>{handleInputChange('singleEngine',!modelData.singleEngine)}}/>}
                     label="Single Engine"
                   />
                 </FormGroup>
@@ -148,7 +169,7 @@ export default function ListModel(props) {
                     row
                     aria-labelledby="demo-controlled-radio-buttons-group"
                     name="controlled-radio-buttons-group"
-                    value={modelData.wing_type}
+                    value={modelData.wingType}
                     onChange={handleChangeWingType}
                   >
                     <FormControlLabel

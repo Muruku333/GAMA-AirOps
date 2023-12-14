@@ -1,6 +1,7 @@
-const express = require('express');
-const aircraftModelController = require('../../controllers/masters/aicraft_model');
+const express = require("express");
+const aircraftModelController = require("../../controllers/masters/aicraft_model");
 const router = express.Router();
+const validation = require("../../middlewares/masters/aircraftModelValidator");
 
 // // middleware that is specfic to this router
 // router.use((req, res, next)=>{
@@ -8,11 +9,21 @@ const router = express.Router();
 //     next();
 // });
 
-// get method for Aircraft Models
-router.get('/aircraft_models', aircraftModelController.getAllAircraftModels);
-router.get('/aircraft_models/authors', aircraftModelController.getAllAircraftModelsWithAuthors);
+router
+  .route("/aircraft_models")
+  .post(validation.createAircraftModel,aircraftModelController.createAircraftModel)
+  .get(aircraftModelController.getAllAircraftModels);
+router
+  .route("/aircraft_models/:model_id")
+  .get(aircraftModelController.getAircraftModelByModeleId)
+  .put(validation.updateAircraftModel,aircraftModelController.updateAircraftModelByModeId)
+  .delete(aircraftModelController.deleteAircraftModelByModelId);
 
-router.get('/aircraft_models/:id', aircraftModelController.getAircraftModelById);
-router.get('/aircraft_models/authors/:id', aircraftModelController.getAircraftModelByIdWithAuthors);
+router
+  .route("/aircraft_models/authors")
+  .get(aircraftModelController.getAllAircraftModelsWithAuthors);
+router
+  .route("/aircraft_models/authors/:model_id")
+  .get(aircraftModelController.getAircraftModelByModelIdWithAuthors);
 
 module.exports = router;
