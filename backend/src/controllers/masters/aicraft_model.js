@@ -31,7 +31,7 @@ const aircraftModelController = {
   getAllAircraftModels: async (req, res) =>{
     try{
         const aircraftModels = await AircraftModel.getAllAircraftModels();
-        if(aircraftModels){
+        if(aircraftModels.length>0){
           return status.ResponseStatus(res,200,"List of all Aircraft Models",aircraftModels);
         }
         return status.ResponseStatus(res,400,"No data found");

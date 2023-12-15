@@ -7,6 +7,8 @@ import {CreateAircraft, ListAircraft, EditAircraft, ViewAircraft} from '../../se
 
 export default function AircraftPage(props){
 
+    const {userData}=props;
+
     const [value, setValue] = useState("1");
     const [aircraftId,setAircraftId]=useState(null);
 
@@ -28,13 +30,13 @@ export default function AircraftPage(props){
         <Container maxWidth='xl'>
         <TabContext value={value} sx={{padding:0}}>
           <TabPanel value="1" sx={{padding:0}}> 
-            <ListAircraft handleTabChange={handleTabChange} handleEditClick={handleEditClick} />
+            <ListAircraft handleTabChange={handleTabChange} handleEditClick={handleEditClick} userData={userData}/>
           </TabPanel>
           <TabPanel value="2" sx={{padding:0}}>
-            <CreateAircraft handleTabChange={handleTabChange} />
+            <CreateAircraft handleTabChange={handleTabChange} userData={userData}/>
           </TabPanel>
           <TabPanel value="3" sx={{padding:0}}>
-            <EditAircraft handleTabChange={handleTabChange} idToEdit={aircraftId} />
+            <EditAircraft handleTabChange={handleTabChange} idToEdit={aircraftId} userData={userData}/>
           </TabPanel>
           {/* <TabPanel value="4" sx={{padding:0}}>
             <ViewAircraft handleTabChange={handleTabChange} customerIdToView={customerId} DB_URL={props.DB_URL} loggedInUserId={props.loggedInUserId}/>

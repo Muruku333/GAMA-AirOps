@@ -40,6 +40,9 @@ import enIN from "date-fns/locale/en-IN";
 import { DemoContainer, DemoItem } from "@mui/x-date-pickers/internals/demo";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SubmitButton = styled(Button)(({theme})=>({
   backgroundColor:theme.palette.success.dark,
@@ -55,10 +58,10 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 export default function CreateAircraft(props) {
 
-  const { handleTabChange, DB_URL, loggedInUserId } = props;
+  const { handleTabChange, userData} = props;
 
   const [operators, setOperators] = useState(["Sparzana Aviation Pvt Ltd"]);
-  const [models, setModels] = useState(["Hawker 800XP", "Hawker 900XP"]);
+  const [models, setModels] = useState(null);
   const [timeFormats, setTimeFormats] = useState(["Local Time", "UTC"]);
   const [units, setUnits] = useState(['Kilo Grams', 'Pounds'])
   const [aircraftData, setAircraftData] = useState({
@@ -87,6 +90,22 @@ export default function CreateAircraft(props) {
   });
   const [validationErrors, setValidationErrors] = useState({});
   const [openAlert, setOpenAlert]= useState(false);
+
+  useEffect( ()=>{
+    const fetchData= async()=>{
+      try {
+        await axios.get(`${API_URL}/api/aircraft_models`).then((response)=>{
+          console.log(response.data);
+          setModels(response.data.results);
+        }).catch((error)=>{
+  
+        });
+      } catch (error) {
+        
+      }
+    }
+    fetchData();
+  },[]);
 
   const handleClickAlert=()=>{
     setOpenAlert(!openAlert);
@@ -249,8 +268,10 @@ export default function CreateAircraft(props) {
                     <Autocomplete
                   fullWidth
                   size="small"
+                  getOptionLabel={(option)=> option.model_name}
                   value={aircraftData.model}
                   onChange={(event, newValue) => {
+                    console.log(newValue);
                     handleInputChange("model", newValue);
                   }}
                   // inputValue={inputValue}
