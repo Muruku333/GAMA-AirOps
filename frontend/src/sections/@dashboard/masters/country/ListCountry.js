@@ -12,11 +12,12 @@ import Iconify from "../../../../components/iconify/Iconify";
 import Scrollbar from "../../../../components/scrollbar";
 import { filter } from "lodash";
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const TABLE_HEAD = [
-  // { id: "row_num", label: "S.No", alignRight: false },
-  // { id: "id", label: "Quotation ID", alignRight: false  },
-  { id: "quotation_no", label: "Name", alignRight: false },
+  { id: "country_name", label: "Country Name", alignRight: false },
   { id: "" },
 ];
 
@@ -46,7 +47,7 @@ function applySortFilter(array, comparator, query) {
   if (query) {
     return filter(
       array,
-      (_user) => _user.quotation_no.toLowerCase().indexOf(query.toLowerCase()) !== -1
+      (_country) =>_country.country_name.toLowerCase().indexOf(query.toLowerCase()) !== -1
     );
   }
   return stabilizedThis.map((el) => el[0]);
@@ -54,9 +55,9 @@ function applySortFilter(array, comparator, query) {
 
 export default function ListCountry(props){
     
- const {handleClickNewCountry, handleClickEditCountry, handleViewClick, DB_URL, loggedInUserId}=props; 
+ const {handleClickCreate, handleClickEdit, handleClickDelete, setStatus, refreshed, loggedUser}=props; 
 
- const [modelRows, setModelRows]=useState([]);
+ const [countryRows, setCountryRows]=useState([]);
 
  const [open, setOpen] = useState(null);
 
@@ -72,7 +73,38 @@ export default function ListCountry(props){
 
  const [rowsPerPage, setRowsPerPage] = useState(5);
 
- const handleOpenMenu = (event) => {
+ const [countryId, setCountryId]= useState(null);
+
+ useEffect(()=>{
+  const fetchData= async()=>{
+    
+    try {
+      await axios.get(`${API_URL}/api/countries`).then((response)=> {
+        if(response.data.status){
+          setCountryRows(response.data.results);
+          // console.log(response.data.results);
+        }
+      }).catch((error)=> {
+        setCountryRows([]);
+        setStatus({
+          open:true,
+          type:'error',
+          message:error.response.data.message,
+        });
+      });
+    } catch (error) {
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network Connection Error",
+      });
+    }
+  }
+  fetchData();
+ },[refreshed]);
+
+ const handleOpenMenu = (event, id) => {
+  setCountryId(id);
   setOpen(event.currentTarget);
 };
 
@@ -88,30 +120,30 @@ const handleRequestSort = (event, property) => {
 
 const handleSelectAllClick = (event) => {
   if (event.target.checked) {
-    const newSelecteds = modelRows.map((n) => n.quotation_no);
+    const newSelecteds = countryRows.map((n) => n.country_id);
     setSelected(newSelecteds);
     return;
   }
   setSelected([]);
 };
 
-const handleClick = (event, name) => {
-  const selectedIndex = selected.indexOf(name);
-  let newSelected = [];
-  if (selectedIndex === -1) {
-    newSelected = newSelected.concat(selected, name);
-  } else if (selectedIndex === 0) {
-    newSelected = newSelected.concat(selected.slice(1));
-  } else if (selectedIndex === selected.length - 1) {
-    newSelected = newSelected.concat(selected.slice(0, -1));
-  } else if (selectedIndex > 0) {
-    newSelected = newSelected.concat(
-      selected.slice(0, selectedIndex),
-      selected.slice(selectedIndex + 1)
-    );
-  }
-  setSelected(newSelected);
-};
+// const handleClick = (event, name) => {
+//   const selectedIndex = selected.indexOf(name);
+//   let newSelected = [];
+//   if (selectedIndex === -1) {
+//     newSelected = newSelected.concat(selected, name);
+//   } else if (selectedIndex === 0) {
+//     newSelected = newSelected.concat(selected.slice(1));
+//   } else if (selectedIndex === selected.length - 1) {
+//     newSelected = newSelected.concat(selected.slice(0, -1));
+//   } else if (selectedIndex > 0) {
+//     newSelected = newSelected.concat(
+//       selected.slice(0, selectedIndex),
+//       selected.slice(selectedIndex + 1)
+//     );
+//   }
+//   setSelected(newSelected);
+// };
 
 const handleChangePage = (event, newPage) => {
   setPage(newPage);
@@ -128,15 +160,15 @@ const handleFilterByName = (event) => {
 };
 
 const emptyRows =
-  page > 0 ? Math.max(0, (1 + page) * rowsPerPage - modelRows.length) : 0;
+  page > 0 ? Math.max(0, (1 + page) * rowsPerPage - countryRows.length) : 0;
 
-const filteredUsers = applySortFilter(
-  modelRows,
+const filteredCountries = applySortFilter(
+  countryRows,
   getComparator(order, orderBy),
   filterName
 );
 
-const isNotFound = !filteredUsers.length && !!filterName;
+const isNotFound = !filteredCountries.length && !!filterName;
 
  const breadcrumbs = [
     <Link
@@ -185,7 +217,7 @@ const isNotFound = !filteredUsers.length && !!filterName;
           <Button
             variant="contained"
             startIcon={<AddIcon fontSize="large" />}
-            onClick={handleClickNewCountry}
+            onClick={handleClickCreate}
           >
             New&nbsp;Country
           </Button>
@@ -201,73 +233,77 @@ const isNotFound = !filteredUsers.length && !!filterName;
             
           <TableContainer sx={{ maxHeight:450, minWidth: 800 }}>
             <Table
-              stickyHeader aria-label="sticky table"
+              stickyHeader aria-label="sticky table" size="small"
             >
               <ListHead
                 order={order}
                 orderBy={orderBy}
                 headLabel={TABLE_HEAD}
-                rowCount={modelRows.length}
-                numSelected={selected.length}
+                rowCount={countryRows.length}
+                numSelected={selected.length}y
                 onRequestSort={handleRequestSort}
                 onSelectAllClick={handleSelectAllClick}
               />
 
 <TableBody>
-                {filteredUsers
+{!(filteredCountries.length > 0) && !(isNotFound) && (
+                          <TableRow sx={{height:300}}>
+                            <TableCell colSpan={5}>
+                              <Stack spacing={1}>
+                                <Box
+                                  component="img"
+                                  src="/assets/icons/ic_content.svg"
+                                  sx={{ height: 120, mx: "auto" }}
+                                />{" "}
+                                <Typography
+                                  textAlign={"center"}
+                                  variant="subtitle1"
+                                  color={"text.secondary"}
+                                  component={"span"}
+                                >
+                                  No Data
+                                </Typography>
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                {filteredCountries
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => {
                     const {
-                      id,
-                      row_num,
-                      quotation_no,
-                      customer_name,
-                      label,
-                      created_by,
-                      created_at,
+                      country_id,
+                      country_name,
                     } = row;
-                    const selectedUser = selected.indexOf(quotation_no) !== -1;
+                    const selectedCountry = selected.indexOf(country_id) !== -1;
 
                     return (
                       <TableRow
                         hover
-                        key={quotation_no}
+                        key={country_id}
                         tabIndex={-1}
                         role="checkbox"
-                        selected={selectedUser}
+                        selected={selectedCountry}
                       >
-                        <TableCell padding="checkbox">
+                        {/* <TableCell padding="checkbox">
                           <Checkbox
-                            checked={selectedUser}
+                            checked={selectedCountry}
                             onChange={(event) =>
-                              handleClick(event, quotation_no)
+                              handleClick(event, country_id)
                             }
                           />
-                        </TableCell>
+                        </TableCell> */}
 
-                        <TableCell align="left">
-                          {" "}
+<TableCell align="left">
                           <Typography variant="subtitle2" noWrap>
-                            {quotation_no}
+                            {country_name}
                           </Typography>
-                        </TableCell>
-
-                        <TableCell align="left">{customer_name}</TableCell>
-
-                        <TableCell align="left">{label}</TableCell>
-
-                        <TableCell align="left">{created_by}</TableCell>
-
-                        <TableCell align="left">
-                          {/* <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label> */}
-                          {`${new Date(created_at).toLocaleString("en-GB")}`}
                         </TableCell>
 
                         <TableCell align="right">
                           <IconButton
-                            size="large"
+                            // size="large"
                             color="inherit"
-                            onClick={handleOpenMenu}
+                            onClick={(e)=>{handleOpenMenu(e,country_id)}}
                           >
                             <Iconify icon={"eva:more-vertical-fill"} />
                           </IconButton>
@@ -276,7 +312,7 @@ const isNotFound = !filteredUsers.length && !!filterName;
                     );
                   })}
                 {emptyRows > 0 && (
-                  <TableRow style={{ height: 53 * emptyRows }}>
+                  <TableRow style={{ height: 49 * emptyRows }}>
                     <TableCell colSpan={6} />
                   </TableRow>
                 )}
@@ -311,7 +347,7 @@ const isNotFound = !filteredUsers.length && !!filterName;
 <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={modelRows.length}
+          count={countryRows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -337,12 +373,12 @@ const isNotFound = !filteredUsers.length && !!filterName;
           },
         }}
       >
-        <MenuItem>
+        <MenuItem onClick={()=>{handleClickEdit(countryId);handleCloseMenu();}}>
           <Iconify icon={"eva:edit-fill"} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: "error.main" }}>
+        <MenuItem sx={{ color: "error.main" }} onClick={()=>{handleClickDelete(countryId);handleCloseMenu();}}>
           <Iconify icon={"eva:trash-2-outline"} sx={{ mr: 2 }} />
           Delete
         </MenuItem>

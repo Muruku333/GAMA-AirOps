@@ -12,9 +12,6 @@ import {
   ListModel,
   DeletModel
 } from "../../sections/@dashboard/masters/aircraft_model";
-import axios from "axios";
-
-const API_URL = process.env.REACT_APP_API_URL;
 
 const TransitionLeft = (props) => {
   return <Slide {...props} direction="left" />;

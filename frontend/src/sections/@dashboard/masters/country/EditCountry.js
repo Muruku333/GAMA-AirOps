@@ -29,6 +29,9 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import AddIcon from "@mui/icons-material/Add";
 // Components -----------------------------------------------
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SubmitButton = styled(Button)(({ theme }) => ({
   backgroundColor: theme.palette.success.dark,
@@ -43,11 +46,39 @@ const Transition = forwardRef(function Transition(props, ref) {
 });
 
 export default function EditCountry(props) {
-  const { optionState, handleClickNewCountry, DB_URL, loggedInUserId } = props;
+  const { optionState, handleClickEdit,setRefreshed, setStatus, idToEdit, loggedUser } = props;
   const [countryData, setCountryData] = useState({
-    country_name: "",
+    countryName: "",
   });
   const [validationErrors, setValidationErrors] = useState({});
+
+  useEffect( ()=>{
+    const fetchData = async() =>{
+      try {
+        await axios.get(`${API_URL}/api/countries/${idToEdit}`).then((response)=>{
+          if(response.data.status){
+            const {country_name} = response.data.results[0];
+            setCountryData({
+              countryName:country_name
+            });
+          }
+        }).catch((error)=>{
+          setStatus({
+            open:true,
+            type:"error",
+            message:error.response.data.message,
+          });
+        });
+      } catch (error) {
+        setStatus({
+          open:true,
+          type:'error',
+          message:"Network connection error",
+        });
+      }
+    }
+    fetchData();
+  },[idToEdit]);
 
   const handleInputChange = (field, value) => {
     setCountryData((pre) => {
@@ -59,44 +90,70 @@ export default function EditCountry(props) {
   const handleClose = (event, reason) => {
     if (reason && (reason == "backdropClick" || reason == "escapeKeyDown"))
       return;
-      handleClickNewCountry();
+      handleClickEdit();
   };
 
   const validateCountryData=()=>{
     let errors={};
 
-    if(!Boolean(countryData.country_name))
-      errors.country_name="Country Name is required.";
+    if(!Boolean(countryData.countryName))
+      errors.countryName="Country Name is required.";
 
     return errors;
   }
 
-  const handleSubmitCountry =(event)=> {
+  const handleSubmitCountry = async (event)=> {
         // console.log('It worked');
         const errors=validateCountryData();
         if (Object.keys(errors).length > 0) {
           setValidationErrors(errors);
           return;
         }
-        console.log(countryData);
+        // console.log(countryData);
+        try {
+          await axios.put(`${API_URL}/api/countries/${idToEdit}`,{...countryData,modifiedBy:loggedUser.user_id}).then((response)=>{
+            if(response.data.status){
+              setStatus({
+                open:true,
+                type:"success",
+                message:response.data.message,
+              });
+              setRefreshed((prev)=>prev+1);
+              handleClickEdit();
+            }
+          }).catch((error)=>{
+            setStatus({
+              open:false,
+              type:"error",
+              message:error.response.data.message,
+            });
+            handleClickEdit();
+          });
+        } catch (error) {
+          setStatus({
+            open:true,
+            type:'error',
+            message:"Network connection error",
+          });
+        }
   }
 
   return (
     <>
       <Helmet>
-        <title>Country Create | GAMA AirOps</title>
+        <title>Country Edit | GAMA AirOps</title>
       </Helmet>
 
       <Dialog
         fullWidth
         maxWidth="sm"
-        open={optionState.canCreate}
+        open={optionState.canEdit}
         TransitionComponent={Transition}
         keepMounted
         onClose={handleClose}
         aria-describedby="alert-dialog-slide-description"
       >
-        <DialogTitle>{"Create a new Country"}</DialogTitle>
+        <DialogTitle>{"Edit Country"}</DialogTitle>
         <DialogContent>
           <Box mt={1} sx={{ flexGrow: 1 }}>
             <Grid
@@ -112,12 +169,12 @@ export default function EditCountry(props) {
                   fullWidth
                   required
                   label="Country Name"
-                  value={countryData.country_name}
+                  value={countryData.countryName}
                   onChange={(event) => {
-                    handleInputChange("country_name", event.target.value);
+                    handleInputChange("countryName", event.target.value);
                   }}
-                  error={Boolean(validationErrors.country_name)}
-                  helperText={validationErrors.country_name}
+                  error={Boolean(validationErrors.countryName)}
+                  helperText={validationErrors.countryName}
                 />
               </Grid>
             </Grid>

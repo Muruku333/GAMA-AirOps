@@ -29,6 +29,9 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import AddIcon from "@mui/icons-material/Add";
 // Components -----------------------------------------------
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SubmitButton = styled(Button)(({ theme }) => ({
   backgroundColor: theme.palette.success.dark,
@@ -43,9 +46,11 @@ const Transition = forwardRef(function Transition(props, ref) {
 });
 
 export default function CreateCountry(props) {
-  const { optionState, handleClickNewCountry, DB_URL, loggedInUserId } = props;
+
+  const { optionState, handleClickCreate, setRefreshed, setStatus, loggedUser } = props;
+
   const [countryData, setCountryData] = useState({
-    country_name: "",
+    countryName: "",
   });
   const [validationErrors, setValidationErrors] = useState({});
 
@@ -59,26 +64,51 @@ export default function CreateCountry(props) {
   const handleClose = (event, reason) => {
     if (reason && (reason === "backdropClick" || reason === "escapeKeyDown"))
       return;
-      handleClickNewCountry();
+      handleClickCreate();
   };
 
   const validateCountryData=()=>{
     let errors={};
 
-    if(!Boolean(countryData.country_name))
-      errors.country_name="Country Name is required.";
+    if(!Boolean(countryData.countryName))
+      errors.countryName="Country Name is required.";
 
     return errors;
   }
-
-  const handleSubmitCountry =(event)=> {
+ 
+  const handleSubmitCountry = async(event)=> {
         // console.log('It worked');
         const errors=validateCountryData();
         if (Object.keys(errors).length > 0) {
           setValidationErrors(errors);
           return;
         }
-        console.log(countryData);
+        // console.log(countryData);
+        try {
+        await axios.post(`${API_URL}/api/countries`,{...countryData,createdBy:loggedUser.user_id}).then((response)=>{
+          // console.log(response);
+          setStatus({
+            open:true,
+            type:'success',
+            message:response.data.message
+          });
+          setRefreshed((prev)=>prev+1);
+          handleClickCreate();
+        }).catch((error)=>{
+          console.log(error);
+          setStatus({
+            open:true,
+            type:'error',
+            message:error.response.data.message,
+          });
+        });
+      } catch (error) {
+        setStatus({
+          open:true,
+          type:'error',
+          message:"Network connection error",
+        });
+      }
   }
 
   return (
@@ -112,12 +142,12 @@ export default function CreateCountry(props) {
                   fullWidth
                   required
                   label="Country Name"
-                  value={countryData.country_name}
+                  value={countryData.countryName}
                   onChange={(event) => {
-                    handleInputChange("country_name", event.target.value);
+                    handleInputChange("countryName", event.target.value);
                   }}
-                  error={Boolean(validationErrors.country_name)}
-                  helperText={validationErrors.country_name}
+                  error={Boolean(validationErrors.countryName)}
+                  helperText={validationErrors.countryName}
                 />
               </Grid>
             </Grid>

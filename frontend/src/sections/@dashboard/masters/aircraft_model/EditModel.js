@@ -163,7 +163,7 @@ export default function EditModel(props) {
         onClose={handleClose}
         aria-describedby="alert-dialog-slide-description"
       >
-        <DialogTitle>{"Aircraft Model Edit"}</DialogTitle>
+        <DialogTitle>{"Edit Aircraft Model"}</DialogTitle>
         <DialogContent>
           <Box mt={1} sx={{ flexGrow: 1 }}>
             <Grid

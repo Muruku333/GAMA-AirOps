@@ -91,7 +91,8 @@ export default function CreateModel(props) {
           setValidationErrors(errors);
           return;
         }
-        console.log(modelData);
+        // console.log(modelData);
+        try {
         await axios.post(`${API_URL}/api/aircraft_models`,{...modelData,...{createdBy:loggedUser.user_id}}).then((response)=>{
           // console.log(response);
           handleClickNewModel();
@@ -108,6 +109,13 @@ export default function CreateModel(props) {
             message:error.response.data.message,
           });
         });
+      } catch (error) {
+        setStatus({
+          open:true,
+          type:'error',
+          message:"Network connection error",
+        });
+      }
   }
 
   return (
