@@ -55,7 +55,7 @@ function applySortFilter(array, comparator, query) {
 
 export default function ListCountry(props){
     
- const {handleClickCreate, handleClickEdit, handleClickDelete, setStatus, refreshed, loggedUser}=props; 
+ const {handleClickCreate, handleClickEdit, handleClickDelete, setStatus, refresh, loggedUser}=props; 
 
  const [countryRows, setCountryRows]=useState([]);
 
@@ -93,6 +93,7 @@ export default function ListCountry(props){
         });
       });
     } catch (error) {
+      setCountryRows([]);
       setStatus({
         open:true,
         type:'error',
@@ -101,7 +102,7 @@ export default function ListCountry(props){
     }
   }
   fetchData();
- },[refreshed]);
+ },[refresh]);
 
  const handleOpenMenu = (event, id) => {
   setCountryId(id);

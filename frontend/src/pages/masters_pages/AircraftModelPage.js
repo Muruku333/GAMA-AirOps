@@ -25,7 +25,7 @@ export default function AircraftModelPage(props) {
   const { userData } = props;
 
   const [modelId, setModelId] = useState(null);
-
+  const [refresh, setRefresh]= useState(0);
   const [optionState, setOptionState] = useState({
     canCreate: false,
     canEdit: false,
@@ -84,6 +84,7 @@ export default function AircraftModelPage(props) {
         handleClickNewModel={handleClickNewModel}
         handleClickEditModel={handleClickEditModel}
         handleClickDelete={handleClickDelete}
+        refresh={refresh}
         setStatus={setStatus}
         loggedUser={userData}
       />
@@ -91,6 +92,7 @@ export default function AircraftModelPage(props) {
         <CreateModel
           handleClickNewModel={handleClickNewModel}
           optionState={optionState}
+          setRefresh={setRefresh}
           setStatus={setStatus}
           loggedUser={userData}
         />
@@ -99,6 +101,7 @@ export default function AircraftModelPage(props) {
         <EditModel
           handleClickEditModel={handleClickEditModel}
           optionState={optionState}
+          setRefresh={setRefresh}
           setStatus={setStatus}
           idToEdit={modelId}
           loggedUser={userData}
@@ -109,6 +112,7 @@ export default function AircraftModelPage(props) {
           <DeletModel
           handleClickDelete={handleClickDelete}
           optionState={optionState}
+          setRefresh={setRefresh}
           setStatus={setStatus}
           idToDelete={modelId}
           loggedUser={userData}

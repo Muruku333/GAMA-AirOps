@@ -229,20 +229,21 @@ DROP TABLE IF EXISTS `fdtl_masters_aircraft_model`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `fdtl_masters_aircraft_model` (
-  `id` varchar(45) NOT NULL,
-  `name` varchar(45) DEFAULT NULL,
+  `id` int NOT NULL AUTO_INCREMENT,
+  `model_id` varchar(45) NOT NULL,
+  `model_name` varchar(45) DEFAULT NULL,
   `single_engine` tinyint DEFAULT NULL,
   `wing_type` varchar(45) DEFAULT NULL,
-  `created_by` varchar(45) DEFAULT NULL,
-  `modified_by` varchar(45) DEFAULT NULL,
+  `created_by` varchar(45) NOT NULL,
+  `modified_by` varchar(45) NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `modified_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`id`,`model_id`),
   KEY `model_list_idx` (`created_by`,`modified_by`),
   KEY `model_list_1_idx` (`modified_by`),
   CONSTRAINT `model_list_1_idx` FOREIGN KEY (`modified_by`) REFERENCES `users` (`user_id`),
   CONSTRAINT `model_list_idx` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -251,7 +252,6 @@ CREATE TABLE `fdtl_masters_aircraft_model` (
 
 LOCK TABLES `fdtl_masters_aircraft_model` WRITE;
 /*!40000 ALTER TABLE `fdtl_masters_aircraft_model` DISABLE KEYS */;
-INSERT INTO `fdtl_masters_aircraft_model` VALUES ('AM-0001','Hawker 800XP',0,'Fixed Wing','SAPL-0001','SAPL-0001','2023-11-10 10:38:33','2023-11-10 16:08:33'),('AM-0002','Hawker 900XP',0,'Fixed Wing','SAPL-0001','SAPL-0001','2023-11-10 11:29:49','2023-11-10 16:59:49');
 /*!40000 ALTER TABLE `fdtl_masters_aircraft_model` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
@@ -268,11 +268,11 @@ DELIMITER ;;
     
     -- Find the next increment
     SET next_increment = COALESCE(
-        (SELECT MAX(CAST(SUBSTRING_INDEX(`id`, '-', -1) AS UNSIGNED)) + 1
+        (SELECT MAX(CAST(SUBSTRING_INDEX(`model_id`, '-', -1) AS UNSIGNED)) + 1
          FROM `fdtl_masters_aircraft_model`
-         WHERE `id` LIKE 'AM-%'), 1);
+         WHERE `model_id` LIKE 'AM-%'), 1);
     
-    SET NEW.`id` = CONCAT('AM-', LPAD(next_increment, 4, '0'));
+    SET NEW.`model_id` = CONCAT('AM-', LPAD(next_increment, 4, '0'));
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -408,34 +408,35 @@ DELIMITER ;
 /*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
--- Table structure for table `fdtl_masters_contry`
+-- Table structure for table `fdtl_masters_country`
 --
 
-DROP TABLE IF EXISTS `fdtl_masters_contry`;
+DROP TABLE IF EXISTS `fdtl_masters_country`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `fdtl_masters_contry` (
-  `id` varchar(45) NOT NULL,
-  `contry_name` varchar(225) DEFAULT NULL,
-  `created_by` varchar(85) DEFAULT NULL,
-  `modified_by` varchar(85) DEFAULT NULL,
+CREATE TABLE `fdtl_masters_country` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `country_id` varchar(45) NOT NULL,
+  `country_name` varchar(225) DEFAULT NULL,
+  `created_by` varchar(85) NOT NULL,
+  `modified_by` varchar(85) NOT NULL,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `modified_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
+  PRIMARY KEY (`id`,`country_id`),
   KEY `contry_name_1_idx` (`created_by`),
   KEY `contry_name_2_idx` (`modified_by`),
   CONSTRAINT `contry_name_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
   CONSTRAINT `contry_name_2` FOREIGN KEY (`modified_by`) REFERENCES `users` (`user_id`) ON DELETE RESTRICT ON UPDATE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=32 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `fdtl_masters_contry`
+-- Dumping data for table `fdtl_masters_country`
 --
 
-LOCK TABLES `fdtl_masters_contry` WRITE;
-/*!40000 ALTER TABLE `fdtl_masters_contry` DISABLE KEYS */;
-/*!40000 ALTER TABLE `fdtl_masters_contry` ENABLE KEYS */;
+LOCK TABLES `fdtl_masters_country` WRITE;
+/*!40000 ALTER TABLE `fdtl_masters_country` DISABLE KEYS */;
+/*!40000 ALTER TABLE `fdtl_masters_country` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!50003 SET @saved_cs_client      = @@character_set_client */ ;
 /*!50003 SET @saved_cs_results     = @@character_set_results */ ;
@@ -446,16 +447,16 @@ UNLOCK TABLES;
 /*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
 DELIMITER ;;
-/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `fdtl_masters_contry_name_before_insert` BEFORE INSERT ON `fdtl_masters_contry` FOR EACH ROW BEGIN
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `fdtl_masters_country_before_insert` BEFORE INSERT ON `fdtl_masters_country` FOR EACH ROW BEGIN
     DECLARE next_increment INT;
     
     -- Find the next increment
     SET next_increment = COALESCE(
-        (SELECT MAX(CAST(SUBSTRING_INDEX(`id`, '-', -1) AS UNSIGNED)) + 1
-         FROM `fdtl_masters_contry_name` 
-         WHERE `id` LIKE 'Con-%'), 1);
+        (SELECT MAX(CAST(SUBSTRING_INDEX(`country_id`, '-', -1) AS UNSIGNED)) + 1
+         FROM `fdtl_masters_country` 
+         WHERE `country_id` LIKE 'CU-%'), 1);
     
-    SET NEW.`id` = CONCAT('Con-', LPAD(next_increment, 4, '0'));
+    SET NEW.`country_id` = CONCAT('CU-', LPAD(next_increment, 4, '0'));
 END */;;
 DELIMITER ;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;
@@ -938,7 +939,7 @@ CREATE TABLE `login_history` (
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   CONSTRAINT `login_history_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=23 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=38 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -947,7 +948,7 @@ CREATE TABLE `login_history` (
 
 LOCK TABLES `login_history` WRITE;
 /*!40000 ALTER TABLE `login_history` DISABLE KEYS */;
-INSERT INTO `login_history` VALUES (1,'SAPL-0001','2023-11-27 10:01:25',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(2,'SAPL-0001','2023-11-27 10:35:18','2023-11-27 10:37:43','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(3,'SAPL-0001','2023-11-27 10:42:26',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(4,'SAPL-0001','2023-11-28 04:17:59','2023-11-28 04:18:22','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(5,'SAPL-0003','2023-11-28 04:45:49',NULL,'Murugesh','Kumar','kumarmurugesh14032001@gmail.com','kumarmurugesh14032001@gmail.com','Logged-In'),(6,'SAPL-0001','2023-11-28 04:47:45',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(7,'SAPL-0001','2023-11-28 07:11:29',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(8,'SAPL-0001','2023-11-28 18:21:41',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(9,'SAPL-0001','2023-11-29 04:18:54',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(10,'SAPL-0001','2023-11-30 04:38:44',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(11,'SAPL-0001','2023-11-30 07:01:26',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(12,'SAPL-0001','2023-12-01 04:37:24',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(13,'SAPL-0001','2023-12-02 04:26:21','2023-12-02 04:26:32','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(14,'SAPL-0001','2023-12-02 04:31:13',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(15,'SAPL-0001','2023-12-06 14:13:32',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(16,'SAPL-0001','2023-12-06 14:14:39',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(17,'SAPL-0001','2023-12-06 14:21:03',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(18,'SAPL-0001','2023-12-08 04:41:55',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(19,'SAPL-0001','2023-12-08 11:40:47',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(20,'SAPL-0001','2023-12-09 04:55:35',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(21,'SAPL-0001','2023-12-09 10:11:50',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(22,'SAPL-0001','2023-12-09 10:36:55',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In');
+INSERT INTO `login_history` VALUES (1,'SAPL-0001','2023-11-27 10:01:25',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(2,'SAPL-0001','2023-11-27 10:35:18','2023-11-27 10:37:43','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(3,'SAPL-0001','2023-11-27 10:42:26',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(4,'SAPL-0001','2023-11-28 04:17:59','2023-11-28 04:18:22','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(5,'SAPL-0003','2023-11-28 04:45:49',NULL,'Murugesh','Kumar','kumarmurugesh14032001@gmail.com','kumarmurugesh14032001@gmail.com','Logged-In'),(6,'SAPL-0001','2023-11-28 04:47:45',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(7,'SAPL-0001','2023-11-28 07:11:29',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(8,'SAPL-0001','2023-11-28 18:21:41',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(9,'SAPL-0001','2023-11-29 04:18:54',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(10,'SAPL-0001','2023-11-30 04:38:44',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(11,'SAPL-0001','2023-11-30 07:01:26',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(12,'SAPL-0001','2023-12-01 04:37:24',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(13,'SAPL-0001','2023-12-02 04:26:21','2023-12-02 04:26:32','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(14,'SAPL-0001','2023-12-02 04:31:13',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(15,'SAPL-0001','2023-12-06 14:13:32',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(16,'SAPL-0001','2023-12-06 14:14:39',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(17,'SAPL-0001','2023-12-06 14:21:03',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(18,'SAPL-0001','2023-12-08 04:41:55',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(19,'SAPL-0001','2023-12-08 11:40:47',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(20,'SAPL-0001','2023-12-09 04:55:35',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(21,'SAPL-0001','2023-12-09 10:11:50',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(22,'SAPL-0001','2023-12-09 10:36:55',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(23,'SAPL-0001','2023-12-12 12:34:17','2023-12-12 12:34:24','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(24,'SAPL-0001','2023-12-12 12:34:33','2023-12-12 12:34:48','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(25,'SAPL-0001','2023-12-12 12:35:47','2023-12-12 12:35:50','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(26,'SAPL-0001','2023-12-12 12:35:58',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(27,'SAPL-0001','2023-12-13 04:32:39','2023-12-13 04:32:45','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(28,'SAPL-0001','2023-12-13 04:32:54','2023-12-13 11:48:43','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(29,'SAPL-0001','2023-12-13 11:49:42',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(30,'SAPL-0001','2023-12-13 14:36:52','2023-12-13 14:36:56','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(31,'SAPL-0001','2023-12-13 14:37:47','2023-12-13 14:38:14','Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-Out'),(32,'SAPL-0001','2023-12-13 14:38:52',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(33,'SAPL-0001','2023-12-13 14:39:22',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(34,'SAPL-0001','2023-12-14 04:33:58',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(35,'SAPL-0001','2023-12-14 06:12:05',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(36,'SAPL-0001','2023-12-15 05:22:36',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In'),(37,'SAPL-0001','2023-12-15 08:56:44',NULL,'Murugesh','Kumar','murugesh.k@refex.co.in','murugesh.k@refex.co.in','Logged-In');
 /*!40000 ALTER TABLE `login_history` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -1197,4 +1198,4 @@ DELIMITER ;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2023-12-09 16:09:37
+-- Dump completed on 2023-12-16 10:07:53

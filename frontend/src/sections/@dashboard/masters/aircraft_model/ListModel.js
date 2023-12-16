@@ -59,7 +59,7 @@ function applySortFilter(array, comparator, query) {
 
 export default function ListModel(props){
     
- const {handleClickNewModel, handleClickEditModel, handleClickDelete,setStatus, loggedUser}=props; 
+ const {handleClickNewModel, handleClickEditModel, handleClickDelete, refresh, setStatus, loggedUser}=props; 
 
  const [modelRows, setModelRows]=useState([]);
 
@@ -89,6 +89,7 @@ export default function ListModel(props){
           // console.log(response.data.results);
         }
       }).catch((error)=> {
+        setModelRows([]);
         setStatus({
           open:true,
           type:'error',
@@ -96,6 +97,7 @@ export default function ListModel(props){
         });
       });
     } catch (error) {
+      setModelRows([]);
       setStatus({
         open:true,
         type:'error',
@@ -104,7 +106,7 @@ export default function ListModel(props){
     }
   }
   fetchData();
- },[handleClickNewModel]);
+ },[refresh]);
 
  const handleOpenMenu = (event, id) => {
   setModelId(id);

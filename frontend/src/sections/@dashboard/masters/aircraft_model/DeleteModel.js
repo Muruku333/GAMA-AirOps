@@ -47,7 +47,7 @@ const SubmitButton = styled(Button)(({ theme }) => ({
 
 export default function DeleteModel(props){
 
-    const {handleClickDelete,optionState,setStatus,idToDelete,loggedUser}=props;
+    const {handleClickDelete,optionState, setRefresh, setStatus,idToDelete,loggedUser}=props;
 
     const handleDeleteAircraftModel = async ()=>{
         try {
@@ -58,6 +58,7 @@ export default function DeleteModel(props){
                     type:'warning',
                     message:response.data.message,
                   });
+                  setRefresh((prev)=>prev+1);
                 }
               }).catch((error)=>{
                 setStatus({
@@ -73,6 +74,7 @@ export default function DeleteModel(props){
                 message:"Network connection error",
               });
         }
+        handleClickDelete();
     };
 
     const handleClose = (event, reason) => {

@@ -47,7 +47,7 @@ const SubmitButton = styled(Button)(({ theme }) => ({
 
 export default function DeleteCountry(props){
 
-    const {handleClickDelete,setRefreshed,optionState,setStatus,idToDelete,loggedUser}=props;
+    const {handleClickDelete,setRefresh,optionState,setStatus,idToDelete,loggedUser}=props;
 
     const handleDeleteCountry = async ()=>{
         try {
@@ -58,8 +58,7 @@ export default function DeleteCountry(props){
                     type:'warning',
                     message:response.data.message,
                   });
-                  setRefreshed((prev)=>prev+1);
-                  handleClickDelete();
+                  setRefresh((prev)=>prev+1);
                 }
               }).catch((error)=>{
                 setStatus({
@@ -75,6 +74,7 @@ export default function DeleteCountry(props){
                 message:"Network connection error",
               });
         }
+        handleClickDelete();
     };
 
     const handleClose = (event, reason) => {

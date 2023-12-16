@@ -47,7 +47,7 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 export default function CreateCountry(props) {
 
-  const { optionState, handleClickCreate, setRefreshed, setStatus, loggedUser } = props;
+  const { optionState, handleClickCreate, setRefresh, setStatus, loggedUser } = props;
 
   const [countryData, setCountryData] = useState({
     countryName: "",
@@ -92,8 +92,7 @@ export default function CreateCountry(props) {
             type:'success',
             message:response.data.message
           });
-          setRefreshed((prev)=>prev+1);
-          handleClickCreate();
+          setRefresh((prev)=>prev+1);
         }).catch((error)=>{
           console.log(error);
           setStatus({
@@ -109,6 +108,7 @@ export default function CreateCountry(props) {
           message:"Network connection error",
         });
       }
+      handleClickCreate();
   }
 
   return (

@@ -46,7 +46,7 @@ const Transition = forwardRef(function Transition(props, ref) {
 });
 
 export default function EditCountry(props) {
-  const { optionState, handleClickEdit,setRefreshed, setStatus, idToEdit, loggedUser } = props;
+  const { optionState, handleClickEdit,setRefresh, setStatus, idToEdit, loggedUser } = props;
   const [countryData, setCountryData] = useState({
     countryName: "",
   });
@@ -118,8 +118,7 @@ export default function EditCountry(props) {
                 type:"success",
                 message:response.data.message,
               });
-              setRefreshed((prev)=>prev+1);
-              handleClickEdit();
+              setRefresh((prev)=>prev+1);
             }
           }).catch((error)=>{
             setStatus({
@@ -127,7 +126,6 @@ export default function EditCountry(props) {
               type:"error",
               message:error.response.data.message,
             });
-            handleClickEdit();
           });
         } catch (error) {
           setStatus({
@@ -136,6 +134,7 @@ export default function EditCountry(props) {
             message:"Network connection error",
           });
         }
+        handleClickEdit();
   }
 
   return (

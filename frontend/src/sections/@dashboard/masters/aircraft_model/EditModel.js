@@ -46,7 +46,7 @@ const Transition = forwardRef(function Transition(props, ref) {
 });
 
 export default function EditModel(props) {
-  const { optionState, handleClickEditModel, setStatus, idToEdit, loggedUser } = props;
+  const { optionState, handleClickEditModel,setRefresh, setStatus, idToEdit, loggedUser } = props;
   const [modelData, setModelData] = useState({
     modelName: "",
     singleEngine: false,
@@ -128,7 +128,7 @@ export default function EditModel(props) {
             type:"success",
             message:response.data.message,
           });
-          handleClickEditModel();
+          setRefresh((prev)=>prev+1);
         }
       }).catch((error)=>{
         setStatus({
@@ -136,7 +136,6 @@ export default function EditModel(props) {
           type:"error",
           message:error.response.data.message,
         });
-        handleClickEditModel();
       });
     } catch (error) {
       setStatus({
@@ -145,7 +144,7 @@ export default function EditModel(props) {
         message:"Network connection error",
       });
     }
-
+    handleClickEditModel();
   };
 
   return (

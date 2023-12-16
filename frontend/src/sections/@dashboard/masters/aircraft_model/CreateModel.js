@@ -46,7 +46,7 @@ const Transition = forwardRef(function Transition(props, ref) {
 });
 
 export default function CreateModel(props) {
-  const { optionState, handleClickNewModel, setStatus, loggedUser} = props;
+  const { optionState, handleClickNewModel, setRefresh, setStatus, loggedUser} = props;
 
   const [modelData, setModelData] = useState({
     modelName: "",
@@ -95,12 +95,12 @@ export default function CreateModel(props) {
         try {
         await axios.post(`${API_URL}/api/aircraft_models`,{...modelData,...{createdBy:loggedUser.user_id}}).then((response)=>{
           // console.log(response);
-          handleClickNewModel();
           setStatus({
             open:true,
             type:'success',
             message:response.data.message
           });
+          setRefresh((prev)=>prev+1);
         }).catch((error)=>{
           console.log(error);
           setStatus({
@@ -116,6 +116,7 @@ export default function CreateModel(props) {
           message:"Network connection error",
         });
       }
+      handleClickNewModel();
   }
 
   return (

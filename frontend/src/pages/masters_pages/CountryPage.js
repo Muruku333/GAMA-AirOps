@@ -25,7 +25,7 @@ export default function CountryPage(props) {
   const { userData } = props;
 
   const [countryId, setCountryId] = useState(null);
-  const [refreshed, setRefreshed]= useState(0);
+  const [refresh, setRefresh]= useState(0);
   const [optionState, setOptionState] = useState({
     canCreate: false,
     canEdit: false,
@@ -76,7 +76,7 @@ export default function CountryPage(props) {
         handleClickCreate={handleClickCreate}
         handleClickEdit={handleClickEdit}
         handleClickDelete={handleClickDelete}
-        refreshed={refreshed}
+        refresh={refresh}
         setStatus={setStatus}
         loggedUser={userData}
       />
@@ -84,7 +84,7 @@ export default function CountryPage(props) {
         <CreateCountry
           handleClickCreate={handleClickCreate}
           optionState={optionState}
-          setRefreshed={setRefreshed}
+          setRefresh={setRefresh}
           setStatus={setStatus}
           loggedUser={userData}
         />
@@ -93,7 +93,7 @@ export default function CountryPage(props) {
         <EditCountry
           handleClickEdit={handleClickEdit}
           optionState={optionState}
-          setRefreshed={setRefreshed}
+          setRefresh={setRefresh}
           idToEdit={countryId}
           setStatus={setStatus}
           loggedUser={userData}
@@ -103,7 +103,7 @@ export default function CountryPage(props) {
         <DeleteCountry
           handleClickDelete={handleClickDelete}
           optionState={optionState}
-          setRefreshed={setRefreshed}
+          setRefresh={setRefresh}
           idToDelete={countryId}
           setStatus={setStatus}
           loggedUser={userData}
