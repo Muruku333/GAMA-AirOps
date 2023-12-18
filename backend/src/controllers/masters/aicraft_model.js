@@ -1,4 +1,4 @@
-const AircraftModel = require('../../models/masters/aircraft_model');
+const AircraftModelModel = require('../../models/masters/aircraft_model');
 const status = require('../../helpers/Response');
 const { validationResult } = require('express-validator');
 
@@ -17,7 +17,7 @@ const aircraftModelController = {
         created_by: createdBy,
         modified_by: createdBy,
       }
-     const result = await AircraftModel.createAircraftModel(aircraftModel);
+     const result = await AircraftModelModel.createAircraftModel(aircraftModel);
      
      if (result.insertId>0){
       return status.ResponseStatus(res,201,"Aircraft Model created successfully");
@@ -30,7 +30,7 @@ const aircraftModelController = {
   },
   getAllAircraftModels: async (req, res) =>{
     try{
-        const aircraftModels = await AircraftModel.getAllAircraftModels();
+        const aircraftModels = await AircraftModelModel.getAllAircraftModels();
         if(aircraftModels.length>0){
           return status.ResponseStatus(res,200,"List of all Aircraft Models",aircraftModels);
         }
@@ -42,7 +42,7 @@ const aircraftModelController = {
   getAircraftModelByModeleId: async (req, res) =>{
     const model_id = req.params.model_id;
     try{
-        const aircraftModel = await AircraftModel.getAircraftModelByCondition({model_id});
+        const aircraftModel = await AircraftModelModel.getAircraftModelByCondition({model_id});
         if(aircraftModel.length>0){
           return status.ResponseStatus(res,200,`Details of Aircraft Model(${model_id})`,aircraftModel);
         }
@@ -53,7 +53,7 @@ const aircraftModelController = {
   },
   getAllAircraftModelsWithAuthors: async (req, res) => {
     try {
-      const rows = await AircraftModel.getAllAircraftModelsWithAuthors();
+      const rows = await AircraftModelModel.getAllAircraftModelsWithAuthors();
       let aircraftModels = [];
       rows.map((row) => {
         const {
@@ -111,7 +111,7 @@ const aircraftModelController = {
     const model_id = req.params.model_id;
 
     try {
-      const rows = await AircraftModel.getAircraftModelByModelIdWithAuthors(model_id);
+      const rows = await AircraftModelModel.getAircraftModelByModelIdWithAuthors(model_id);
       const {
         id,
         model_name,
@@ -174,7 +174,7 @@ const aircraftModelController = {
         wing_type: wingType,
         modified_by: modifiedBy,
       }
-      const result= await AircraftModel.updateAircraftModelByCondition({model_id},aircraftModel);
+      const result= await AircraftModelModel.updateAircraftModelByCondition({model_id},aircraftModel);
       if(result.affectedRows>0){
         return status.ResponseStatus(res,200,"Aircraft Model updated successfully");
       }
@@ -186,7 +186,7 @@ const aircraftModelController = {
   deleteAircraftModelByModelId: async (req, res)=>{
     try {
       const model_id = req.params.model_id;
-      const result = await AircraftModel.deleteAircraftModelByCondition({model_id});
+      const result = await AircraftModelModel.deleteAircraftModelByCondition({model_id});
       if(result.affectedRows>0){
         return status.ResponseStatus(res,200,"Aircraft Model deleted successfully");
       }

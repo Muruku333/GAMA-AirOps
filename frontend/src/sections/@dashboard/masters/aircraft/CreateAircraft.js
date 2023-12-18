@@ -92,19 +92,21 @@ export default function CreateAircraft(props) {
   const [openAlert, setOpenAlert]= useState(false);
 
   useEffect( ()=>{
-    const fetchData= async()=>{
+    const fetchModels= async()=>{
       try {
         await axios.get(`${API_URL}/api/aircraft_models`).then((response)=>{
           console.log(response.data);
           setModels(response.data.results);
-        }).catch((error)=>{
-  
         });
       } catch (error) {
-        
+        setModels([]);
       }
     }
-    fetchData();
+    // const fetchOperators = async()=>{
+    //   setOperators([]);
+    // }
+    // fetchOperators();
+    fetchModels();
   },[]);
 
   const handleClickAlert=()=>{

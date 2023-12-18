@@ -1,4 +1,4 @@
-const countryModel = require('../../models/masters/country');
+const CountryModel = require('../../models/masters/country');
 const status = require('../../helpers/Response');
 const { validationResult } = require('express-validator');
 
@@ -15,7 +15,7 @@ const countryController ={
               created_by: createdBy,
               modified_by: createdBy,
             }
-           const result = await countryModel.createCountry(country);
+           const result = await CountryModel.createCountry(country);
            
            if (result.insertId>0){
             return status.ResponseStatus(res,201,"Country created successfully");
@@ -28,7 +28,7 @@ const countryController ={
     },
     getAllCountries: async (req, res)=>{
         try{
-            const countries = await countryModel.getAllCountries();
+            const countries = await CountryModel.getAllCountries();
             if(countries.length>0){
               return status.ResponseStatus(res,200,"List of all Countries",countries);
             }
@@ -40,7 +40,7 @@ const countryController ={
     getCountryByCountryId: async(req, res)=>{
         try{
             const country_id = req.params.country_id;
-            const country = await countryModel.getCountryByCondition({country_id});
+            const country = await CountryModel.getCountryByCondition({country_id});
             if(country.length>0){
               return status.ResponseStatus(res,200,`Details of Country(${country_id})`,country);
             }
@@ -61,7 +61,7 @@ const countryController ={
               country_name: countryName,
               modified_by: modifiedBy,
             }
-            const result= await countryModel.updateCountryByCondition({country_id},country);
+            const result= await CountryModel.updateCountryByCondition({country_id},country);
             if(result.affectedRows>0){
               return status.ResponseStatus(res,200,"Country updated successfully");
             }
@@ -73,7 +73,7 @@ const countryController ={
     deleteCountryByCountryId: async (req, res)=>{
         try {
             const country_id = req.params.country_id;
-            const result = await countryModel.deleteCountryByCondition({country_id});
+            const result = await CountryModel.deleteCountryByCondition({country_id});
             if(result.affectedRows>0){
               return status.ResponseStatus(res,200,"Country deleted successfully");
             }

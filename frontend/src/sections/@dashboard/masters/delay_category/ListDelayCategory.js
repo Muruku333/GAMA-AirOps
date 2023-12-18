@@ -11,13 +11,15 @@ import Iconify from "../../../../components/iconify/Iconify";
 import Scrollbar from "../../../../components/scrollbar";
 import { filter } from "lodash";
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
 
+const API_URL = process.env.REACT_APP_API_URL;
 
 const TABLE_HEAD = [
   // { id: "row_num", label: "S.No", alignRight: false },
   // { id: "id", label: "Quotation ID", alignRight: false  },
-  { id: "quotation_no", label: "Name", alignRight: false },
-  { id: "customer_name", label: "Delay Type", alignRight: false },
+  { id: "category_name", label: "Category Name", alignRight: false },
+  { id: "delay_type", label: "Delay Type", alignRight: false },
   { id: "" },
 ];
 
@@ -47,7 +49,7 @@ function applySortFilter(array, comparator, query) {
   if (query) {
     return filter(
       array,
-      (_user) => _user.quotation_no.toLowerCase().indexOf(query.toLowerCase()) !== -1
+      (_delayCategories) => _delayCategories.category_name.toLowerCase().indexOf(query.toLowerCase()) !== -1
     );
   }
   return stabilizedThis.map((el) => el[0]);
@@ -55,9 +57,9 @@ function applySortFilter(array, comparator, query) {
 
 export default function ListDelayCategory(props){
     
- const {handleClickCreate, handleClickEdit, handleClickView }=props;
+ const {handleClickCreate, handleClickEdit, handleClickDelete, setStatus, refresh, loggedUser }=props;
 
- const [modelRows, setModelRows]=useState([]);
+ const [categoriesRows, setCategoriesRows]=useState([]);
 
  const [open, setOpen] = useState(null);
 
@@ -73,7 +75,39 @@ export default function ListDelayCategory(props){
 
  const [rowsPerPage, setRowsPerPage] = useState(5);
 
- const handleOpenMenu = (event) => {
+ const [delayCatId, setDelayCatId]= useState(null);
+
+ useEffect(()=>{
+  const fetchData= async()=>{
+    
+    try {
+      await axios.get(`${API_URL}/api/delay_categories`).then((response)=> {
+        if(response.data.status){
+          setCategoriesRows(response.data.results);
+          // console.log(response.data.results);
+        }
+      }).catch((error)=> {
+        setCategoriesRows([]);
+        setStatus({
+          open:true,
+          type:'error',
+          message:error.response.data.message,
+        });
+      });
+    } catch (error) {
+      setCategoriesRows([]);
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network Connection Error",
+      });
+    }
+  }
+  fetchData();
+ },[refresh]);
+
+ const handleOpenMenu = (event, id) => {
+  setDelayCatId(id);
   setOpen(event.currentTarget);
 };
 
@@ -89,7 +123,7 @@ const handleRequestSort = (event, property) => {
 
 const handleSelectAllClick = (event) => {
   if (event.target.checked) {
-    const newSelecteds = modelRows.map((n) => n.quotation_no);
+    const newSelecteds = categoriesRows.map((n) => n.category_id);
     setSelected(newSelecteds);
     return;
   }
@@ -129,15 +163,15 @@ const handleFilterByName = (event) => {
 };
 
 const emptyRows =
-  page > 0 ? Math.max(0, (1 + page) * rowsPerPage - modelRows.length) : 0;
+  page > 0 ? Math.max(0, (1 + page) * rowsPerPage - categoriesRows.length) : 0;
 
-const filteredUsers = applySortFilter(
-  modelRows,
+const filteredCategories = applySortFilter(
+  categoriesRows,
   getComparator(order, orderBy),
   filterName
 );
 
-const isNotFound = !filteredUsers.length && !!filterName;
+const isNotFound = !filteredCategories.length && !!filterName;
 
  const breadcrumbs = [
     <Link
@@ -202,73 +236,80 @@ const isNotFound = !filteredUsers.length && !!filterName;
             
           <TableContainer sx={{ maxHeight:450, minWidth: 800 }}>
             <Table
-              stickyHeader aria-label="sticky table"
+              stickyHeader aria-label="sticky table" size="small"
             >
               <ListHead
                 order={order}
                 orderBy={orderBy}
                 headLabel={TABLE_HEAD}
-                rowCount={modelRows.length}
+                rowCount={categoriesRows.length}
                 numSelected={selected.length}
                 onRequestSort={handleRequestSort}
                 onSelectAllClick={handleSelectAllClick}
               />
 
 <TableBody>
-                {filteredUsers
+{!(filteredCategories.length > 0) && !(isNotFound) && (
+                          <TableRow sx={{height:300}}>
+                            <TableCell colSpan={3}>
+                              <Stack spacing={1}>
+                                <Box
+                                  component="img"
+                                  src="/assets/icons/ic_content.svg"
+                                  sx={{ height: 120, mx: "auto" }}
+                                />{" "}
+                                <Typography
+                                  textAlign={"center"}
+                                  variant="subtitle1"
+                                  color={"text.secondary"}
+                                  component={"span"}
+                                >
+                                  No Data
+                                </Typography>
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                {filteredCategories
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => {
                     const {
-                      id,
-                      row_num,
-                      quotation_no,
-                      customer_name,
-                      label,
-                      created_by,
-                      created_at,
+                      category_id,
+                      category_name,
+                      delay_type,
                     } = row;
-                    const selectedUser = selected.indexOf(quotation_no) !== -1;
+                    const selectedCategory = selected.indexOf(category_id) !== -1;
 
                     return (
                       <TableRow
                         hover
-                        key={quotation_no}
+                        key={category_id}
                         tabIndex={-1}
                         role="checkbox"
-                        selected={selectedUser}
+                        selected={selectedCategory}
                       >
-                        <TableCell padding="checkbox">
+                        {/* <TableCell padding="checkbox">
                           <Checkbox
-                            checked={selectedUser}
+                            checked={selectedCategory}
                             onChange={(event) =>
-                              handleClick(event, quotation_no)
+                              handleClick(event, category_id)
                             }
                           />
-                        </TableCell>
+                        </TableCell> */}
 
                         <TableCell align="left">
-                          {" "}
                           <Typography variant="subtitle2" noWrap>
-                            {quotation_no}
+                            {category_name}
                           </Typography>
                         </TableCell>
 
-                        <TableCell align="left">{customer_name}</TableCell>
-
-                        <TableCell align="left">{label}</TableCell>
-
-                        <TableCell align="left">{created_by}</TableCell>
-
-                        <TableCell align="left">
-                          {/* <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label> */}
-                          {`${new Date(created_at).toLocaleString("en-GB")}`}
-                        </TableCell>
+                        <TableCell align="left">{delay_type}</TableCell>
 
                         <TableCell align="right">
                           <IconButton
-                            size="large"
+                            // size="large"
                             color="inherit"
-                            onClick={handleOpenMenu}
+                            onClick={(e)=>{handleOpenMenu(e,category_id)}}
                           >
                             <Iconify icon={"eva:more-vertical-fill"} />
                           </IconButton>
@@ -277,8 +318,8 @@ const isNotFound = !filteredUsers.length && !!filterName;
                     );
                   })}
                 {emptyRows > 0 && (
-                  <TableRow style={{ height: 53 * emptyRows }}>
-                    <TableCell colSpan={6} />
+                  <TableRow style={{ height: 49 * emptyRows }}>
+                    <TableCell colSpan={3} />
                   </TableRow>
                 )}
               </TableBody>
@@ -286,7 +327,7 @@ const isNotFound = !filteredUsers.length && !!filterName;
               {isNotFound && (
                 <TableBody>
                   <TableRow>
-                    <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                    <TableCell align="center" colSpan={3} sx={{ py: 3 }}>
                       <Paper
                         sx={{
                           textAlign: "center",
@@ -312,7 +353,7 @@ const isNotFound = !filteredUsers.length && !!filterName;
 <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={modelRows.length}
+          count={categoriesRows.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -338,12 +379,12 @@ const isNotFound = !filteredUsers.length && !!filterName;
           },
         }}
       >
-        <MenuItem>
+        <MenuItem onClick={()=>{handleClickEdit(delayCatId);handleCloseMenu();}}>
           <Iconify icon={"eva:edit-fill"} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: "error.main" }}>
+        <MenuItem sx={{ color: "error.main" }} onClick={()=>{handleClickDelete(delayCatId);handleCloseMenu();}}>
           <Iconify icon={"eva:trash-2-outline"} sx={{ mr: 2 }} />
           Delete
         </MenuItem>

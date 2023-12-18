@@ -49,6 +49,7 @@ app.use(
   require("./src/routes/users"),
   require("./src/routes/masters/aircraft_model"),
   require("./src/routes/masters/country"),
+  require("./src/routes/masters/delay_category"),
   require("./src/routes/masters/hotel")
 );
 

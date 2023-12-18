@@ -314,7 +314,7 @@ const isNotFound = !filteredCountries.length && !!filterName;
                   })}
                 {emptyRows > 0 && (
                   <TableRow style={{ height: 49 * emptyRows }}>
-                    <TableCell colSpan={6} />
+                    <TableCell colSpan={2} />
                   </TableRow>
                 )}
               </TableBody>
@@ -322,7 +322,7 @@ const isNotFound = !filteredCountries.length && !!filterName;
               {isNotFound && (
                 <TableBody>
                   <TableRow>
-                    <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                    <TableCell align="center" colSpan={2} sx={{ py: 3 }}>
                       <Paper
                         sx={{
                           textAlign: "center",

@@ -1,34 +1,129 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 // @mui
-import {TabContext, TabPanel} from "@mui/lab";
-import {Box, Container} from "@mui/material";
+import { TabContext, TabPanel } from "@mui/lab";
+import { Box, Container } from "@mui/material";
+import Slide from "@mui/material/Slide";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 // Country Component
-import { ListDelayCategory, CreateDelayCategory, EditDelayCategory } from "../../sections/@dashboard/masters/delay_category";
+import {
+  ListDelayCategory,
+  CreateDelayCategory,
+  EditDelayCategory,
+  DeleteDelayCategory,
+} from "../../sections/@dashboard/masters/delay_category";
 
-export default function DelayCategoryPage(props){
-    const {userData}=props;
+const TransitionLeft = (props) => {
+  return <Slide {...props} direction="left" />;
+};
 
-    const [delayCatId,setDelayCatId]=useState(null);
-    const [optionState, setOptionState]= useState({canCreate:false, canEdit: false, canView: false});
+const Alert = forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
-    const handleOptionChange =(key,value)=>{
-        setOptionState((pre)=>{return {...pre,[key]:value}});
+export default function DelayCategoryPage(props) {
+  const { userData } = props;
+
+  const [delayCatId, setDelayCatId] = useState(null);
+  const [refresh, setRefresh]= useState(0);
+  const [optionState, setOptionState] = useState({
+    canCreate: false,
+    canEdit: false,
+    canView: false,
+    canDelete: false,
+  });
+
+  const [status, setStatus] = useState({
+    open: false,
+    type: "error",
+    message: "None",
+  });
+
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
     }
+    setStatus((prev) => ({
+      open: false,
+      type: prev.type,
+      message: prev.message,
+    }));
+  };
 
-    const handleClickCreate = () =>{
-        handleOptionChange('canCreate', !optionState.canCreate);
-    }
+  const handleOptionChange = (key, value) => {
+    setOptionState((pre) => {
+      return { ...pre, [key]: value };
+    });
+  };
 
-    const handleClickEdit = (idToEdit=null) =>{
-        setDelayCatId(idToEdit);
-        handleOptionChange('canEdit',!optionState.canEdit);
-    }
+  const handleClickCreate = () => {
+    handleOptionChange("canCreate", !optionState.canCreate);
+  };
 
-    return(
-        <Container >
-          <ListDelayCategory handleClickCreate={handleClickCreate} handleClickEdit={handleClickEdit} userData={userData}/>
-          {optionState.canCreate && <CreateDelayCategory  handleClickCreate={handleClickCreate} optionState={optionState} userData={userData}/>}
-          {optionState.canEdit && <EditDelayCategory handleClickEdit={handleClickEdit} optionState={optionState} idToEdit={delayCatId} userData={userData}/>}
-        </Container>
-    );
+  const handleClickEdit = (idToEdit = null) => {
+    setDelayCatId(idToEdit);
+    handleOptionChange("canEdit", !optionState.canEdit);
+  };
+
+  const handleClickDelete = async (idToDelete=null)=>{
+    setDelayCatId(idToDelete);
+    handleOptionChange("canDelete", !optionState.canDelete);
+  };
+
+  return (
+    <Container>
+      <ListDelayCategory
+        handleClickCreate={handleClickCreate}
+        handleClickEdit={handleClickEdit}
+        handleClickDelete={handleClickDelete}
+        refresh={refresh}
+        setStatus={setStatus}
+        loggedUser={userData}
+      />
+      {optionState.canCreate && (
+        <CreateDelayCategory
+          handleClickCreate={handleClickCreate}
+          optionState={optionState}
+          setRefresh={setRefresh}
+          setStatus={setStatus}
+          loggedUser={userData}
+        />
+      )}
+      {optionState.canEdit && (
+        <EditDelayCategory
+          handleClickEdit={handleClickEdit}
+          optionState={optionState}
+          idToEdit={delayCatId}
+          setRefresh={setRefresh}
+          setStatus={setStatus}
+          loggedUser={userData}
+        />
+      )}
+      {optionState.canDelete && (
+        <DeleteDelayCategory
+          handleClickDelete={handleClickDelete}
+          optionState={optionState}
+          setRefresh={setRefresh}
+          idToDelete={delayCatId}
+          setStatus={setStatus}
+          loggedUser={userData}
+        />
+      )}
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        open={status.open}
+        TransitionComponent={TransitionLeft}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+      >
+        <Alert
+          onClose={handleCloseAlert}
+          severity={status.type}
+          sx={{ width: "100%" }}
+        >
+          {status.message}
+        </Alert>
+      </Snackbar>
+    </Container>
+  );
 }
