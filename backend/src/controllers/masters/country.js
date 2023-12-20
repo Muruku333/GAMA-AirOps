@@ -79,6 +79,9 @@ const countryController ={
             }
             return status.ResponseStatus(res,400,'Failed to delete Country');
           } catch (error) {
+            if(error.errno === 1451){
+              return status.ResponseStatus(res, 500, "Deletion failed. The selected country is associated with existing data.",{error:error})
+          }
             return status.ResponseStatus(res,500,"Internal server error",{error:error.message});
           }
     }

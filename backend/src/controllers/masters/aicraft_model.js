@@ -54,6 +54,7 @@ const aircraftModelController = {
   getAllAircraftModelsWithAuthors: async (req, res) => {
     try {
       const rows = await AircraftModelModel.getAllAircraftModelsWithAuthors();
+      if(rows.length>0){
       let aircraftModels = [];
       rows.map((row) => {
         const {
@@ -99,7 +100,7 @@ const aircraftModelController = {
           },
         ];
       });
-      if(rows.length>0){
+      
       return status.ResponseStatus(res,200,"List of all Aircraft Models with Authors",aircraftModels);
       }
       return status.ResponseStatus(res,400,"No data found");
@@ -112,6 +113,7 @@ const aircraftModelController = {
 
     try {
       const rows = await AircraftModelModel.getAircraftModelByModelIdWithAuthors(model_id);
+      if(rows.length>0){
       const {
         id,
         model_name,
@@ -152,7 +154,7 @@ const aircraftModelController = {
           },
         },
       ];
-      if(rows){
+
         return status.ResponseStatus(res,200,`Details of Aircraft Model(${model_id}) with Authors`,aircraftModel);
       }
       return status.ResponseStatus(res,400,`No data found for ${model_id}`);

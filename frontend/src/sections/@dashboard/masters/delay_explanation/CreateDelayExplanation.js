@@ -32,6 +32,9 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import AddIcon from "@mui/icons-material/Add";
 // Components -----------------------------------------------
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SubmitButton = styled(Button)(({ theme }) => ({
   backgroundColor: theme.palette.success.dark,
@@ -47,10 +50,39 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 export default function CreateDelayExplanation(props) {
 
-  const { optionState, handleClickCreate, userData } = props;
+  const { optionState, handleClickCreate, setRefresh, setStatus, loggedUser } = props;
 
-  const [delayCategories, setDelayCategories] = useState(['category 1', 'category 2'])
+  const [delayCategories, setDelayCategories] = useState(null);
+  const [explanationData, setExplanationData] = useState({
+    explanationName:'',
+    delayCategoryId:'',
+  })
   const [validationErrors, setValidationErrors] = useState({});
+
+  useEffect( ()=>{
+    const fetchDelayCategories = async()=>{
+      try {
+        await axios.get(`${API_URL}/api/delay_categories`).then((response)=>{
+          // console.log(response.data);
+          setDelayCategories(response.data.results);
+        });
+      } catch (error) {
+        setDelayCategories([]);
+      }
+    }
+    // const fetchOperators = async()=>{
+    //   setOperators([]);
+    // }
+    // fetchOperators();
+    fetchDelayCategories();
+  },[]);
+
+  const handleInputChange = (field, value) => {
+    setExplanationData((pre) => {
+      return { ...pre, ...{ [field]: value } };
+    });
+    setValidationErrors({});
+  };
 
   const handleClose = (event, reason) => {
     if (reason && (reason === "backdropClick" || reason === "escapeKeyDown"))
@@ -60,18 +92,45 @@ export default function CreateDelayExplanation(props) {
 
   const validate=()=>{
     let errors={};
-
+      if(!Boolean(explanationData.explanationName))
+        errors.explanationName = "Explanation Name is required";
+      if(!Boolean(explanationData.delayCategoryId))
+        errors.dealyCategoryId = "Delay category is required";
     return errors;
   }
 
-  const handleSubmit =(event)=> {
+  const handleSubmit = async (event)=> {
     // console.log('It worked');
     const errors=validate();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
-
+    try {
+      await axios.post(`${API_URL}/api/delay_explanations`,{...explanationData,createdBy:loggedUser.user_id}).then((response)=>{
+        // console.log(response);
+        setStatus({
+          open:true,
+          type:'success',
+          message:response.data.message
+        });
+        setRefresh((prev)=>prev+1);
+      }).catch((error)=>{
+        // console.log(error);
+        setStatus({
+          open:true,
+          type:'error',
+          message:error.response.data.message,
+        });
+      });
+    } catch (error) {
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network connection error",
+      });
+    }
+    handleClickCreate();
 }
 
   return (
@@ -104,35 +163,36 @@ export default function CreateDelayExplanation(props) {
                   fullWidth
                   required
                   label="Explanation Name"
-                  // value={aircraftData.reg_no}
-                  // onChange={(event) => {
-                  //   handleInputChange("reg_no", event.target.value);
-                  // }}
-                  // error={Boolean(validationErrors.reg_no)}
-                  // helperText={validationErrors.reg_no}
+                  // value={explanationData.explanationName}
+                  onChange={(event) => {
+                    handleInputChange("explanationName", event.target.value);
+                  }}
+                  error={Boolean(validationErrors.explanationName)}
+                  helperText={validationErrors.explanationName}
                 />
               </Grid>
               <Grid item xs={4} sm={6} md={6}>
               <Autocomplete
                   fullWidth
                   size="small"
-                  // value={aircraftData.model}
-                  // onChange={(event, newValue) => {
-                  //   handleInputChange("model", newValue);
-                  // }}
-                  // inputValue={inputValue}
-                  // onInputChange={(event, newInputValue) => {
-                  //   setInputValue(newInputValue);
-                  // }}
+                  // value={explanationData.delayCategory}
+                  onChange={(event, newValue) => {
+                    if(newValue){
+                      handleInputChange("delayCategoryId", newValue.category_id);
+                    }else{
+                      handleInputChange("delayCategoryId", null);
+                    }
+                  }}
                   id="delay_explanation_delay_category"
                   options={delayCategories}
+                  getOptionLabel={(option)=>option.category_name}
                   renderInput={(params) => (
                     <TextField 
                       {...params} 
                       required
                       label="Delay Category"
-                      // error={Boolean(validationErrors.model)}
-                      // helperText={validationErrors.model}
+                      error={Boolean(validationErrors.dealyCategoryId)}
+                      helperText={validationErrors.dealyCategoryId}
                        />
                        )}
                        />

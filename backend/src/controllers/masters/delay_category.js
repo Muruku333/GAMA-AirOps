@@ -4,7 +4,7 @@ const status = require('../../helpers/Response');
 const { validationResult } = require('express-validator');
 
 // Define the controller for delay category list operations
-const delayCategoryListController = {
+const delayCategoryController = {
 
     createDelayCategory: async (req, res) => {
         try {
@@ -87,10 +87,13 @@ const delayCategoryListController = {
             }
             return status.ResponseStatus(res, 404, `Failed to delete Delay Category`);
         } catch (error) {
+            if(error.errno === 1451){
+                return status.ResponseStatus(res, 500, "Deletion failed. The selected delay category is associated with existing explanations.",{error:error})
+            }
             return status.ResponseStatus(res, 500, "Internal server error", { error: error.message });
         }
     },
 };
 
 // Export the controller
-module.exports = delayCategoryListController;
+module.exports = delayCategoryController;

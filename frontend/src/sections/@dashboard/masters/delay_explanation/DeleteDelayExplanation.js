@@ -45,13 +45,13 @@ const SubmitButton = styled(Button)(({ theme }) => ({
     return <Slide direction="up" ref={ref} {...props} />;
   });
 
-export default function DeleteDelayCategory(props){
+export default function DeleteDelayExplanation(props){
 
     const {handleClickDelete,setRefresh,optionState,setStatus,idToDelete,loggedUser}=props;
 
     const handleDeleteCountry = async ()=>{
         try {
-            await axios.delete(`${API_URL}/api/delay_categories/${idToDelete}`).then((response)=>{
+            await axios.delete(`${API_URL}/api/delay_explanations/${idToDelete}`).then((response)=>{
                 if(response.data.status){
                   setStatus({
                     open:true,

@@ -5,7 +5,7 @@ import { Box, Container } from "@mui/material";
 import Slide from "@mui/material/Slide";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
-// Country Component
+// Category Component
 import {
   ListDelayCategory,
   CreateDelayCategory,

@@ -32,6 +32,9 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import AddIcon from "@mui/icons-material/Add";
 // Components -----------------------------------------------
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SubmitButton = styled(Button)(({ theme }) => ({
   backgroundColor: theme.palette.success.dark,
@@ -47,15 +50,44 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 export default function CreateCity(props) {
 
-  const { optionState, handleClickCreate, userData } = props;
+  const { optionState, handleClickCreate, setRefresh, setStatus, loggedUser } = props;
   const [cityData, setCityData] = useState({
-    city_name: null,
-    zone:null,
-    country:null,
+    cityName: null,
+    zoneId:null,
+    countryId:null,
   });
-  const [zones, setZones] = useState(['zone 1', 'zone 2']);
-  const [countries, setCountries] = useState(['country 1', 'country 2']);
+  const [zones, setZones] = useState([]);
+  const [countries, setCountries] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
+
+  useEffect( ()=>{
+    const fetchZoneList = async()=>{
+      try {
+        await axios.get(`${API_URL}/api/zone_list`).then((response)=>{
+          // console.log(response.data);
+          setZones(response.data.results);
+        });
+      } catch (error) {
+        setZones([]);
+      }
+    }
+    const fetchCountryList = async()=>{
+      try {
+        await axios.get(`${API_URL}/api/countries`).then((response)=>{
+          // console.log(response.data);
+          setCountries(response.data.results);
+        });
+      } catch (error) {
+        setCountries([]);
+      }
+    }
+    // const fetchOperators = async()=>{
+    //   setOperators([]);
+    // }
+    // fetchOperators();
+    fetchCountryList();
+    fetchZoneList();
+  },[]);
 
   const handleInputChange = (field, value) => {
     setCityData((pre) => {
@@ -73,24 +105,48 @@ export default function CreateCity(props) {
   const validate=()=>{
     let errors={};
 
-    if(!Boolean(cityData.city_name))
-      errors.city_name="City Name is required";
-    if(!Boolean(cityData.zone))
-      errors.zone="Zone is required";
-    if(!Boolean(cityData.country))
-      errors.country="Country is required";
+    if(!Boolean(cityData.cityName))
+      errors.cityName="City Name is required";
+    if(!Boolean(cityData.zoneId))
+      errors.zoneId="Zone is required";
+    if(!Boolean(cityData.countryId))
+      errors.countryId="Country is required";
 
     return errors;
   }
 
-  const handleSubmit =(event)=> {
+  const handleSubmit = async (event)=> {
     // console.log('It worked');
     const errors=validate();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
-    console.log(cityData);
+    try {
+      await axios.post(`${API_URL}/api/cities`,{...cityData,createdBy:loggedUser.user_id}).then((response)=>{
+        // console.log(response);
+        setStatus({
+          open:true,
+          type:'success',
+          message:response.data.message
+        });
+        setRefresh((prev)=>prev+1);
+      }).catch((error)=>{
+        // console.log(error);
+        setStatus({
+          open:true,
+          type:'error',
+          message:error.response.data.message,
+        });
+      });
+    } catch (error) {
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network connection error",
+      });
+    }
+    handleClickCreate();
 }
 
   return (
@@ -124,21 +180,25 @@ export default function CreateCity(props) {
                   fullWidth
                   required
                   label="City Name"
-                  value={cityData.city_name}
+                  value={cityData.cityName}
                   onChange={(event) => {
-                    handleInputChange("city_name", event.target.value);
+                    handleInputChange("cityName", event.target.value);
                   }}
-                  error={Boolean(validationErrors.city_name)}
-                  helperText={validationErrors.city_name}
+                  error={Boolean(validationErrors.cityName)}
+                  helperText={validationErrors.cityName}
                 />
               </Grid>
               <Grid item xs={4} sm={12} md={12}>
               <Autocomplete
                   fullWidth
                   size="small"
-                  value={cityData.zone}
+                  // value={cityData.zoneId}
                   onChange={(event, newValue) => {
-                    handleInputChange("zone", newValue);
+                    if(newValue){
+                      handleInputChange("zoneId", newValue.id);
+                    }else{
+                      handleInputChange("zoneId", null);
+                    }
                   }}
                   // inputValue={inputValue}
                   // onInputChange={(event, newInputValue) => {
@@ -146,13 +206,14 @@ export default function CreateCity(props) {
                   // }}
                   id="zone"
                   options={zones}
+                  getOptionLabel={(option)=>option.zone}
                   renderInput={(params) => (
                     <TextField 
                       {...params} 
                       required
                       label="Zone"
-                      error={Boolean(validationErrors.zone)}
-                      helperText={validationErrors.zone}
+                      error={Boolean(validationErrors.zoneId)}
+                      helperText={validationErrors.zoneId}
                        />
                   )}
                 />
@@ -163,9 +224,13 @@ export default function CreateCity(props) {
                 <Autocomplete
                   fullWidth
                   size="small"
-                  value={cityData.country}
+                  // value={cityData.countryId}
                   onChange={(event, newValue) => {
-                    handleInputChange("country", newValue);
+                    if(newValue){
+                      handleInputChange("countryId", newValue.country_id);
+                    }else{
+                      handleInputChange("countryId", null);
+                    }
                   }}
                   // inputValue={inputValue}
                   // onInputChange={(event, newInputValue) => {
@@ -173,13 +238,14 @@ export default function CreateCity(props) {
                   // }}
                   id="country"
                   options={countries}
+                  getOptionLabel={(option)=>option.country_name}
                   renderInput={(params) => (
                     <TextField 
                       {...params} 
                       required
                       label="Country"
-                      error={Boolean(validationErrors.country)}
-                      helperText={validationErrors.country}
+                      error={Boolean(validationErrors.countryId)}
+                      helperText={validationErrors.countryId}
                        />
                   )}
                 />
