@@ -85,7 +85,7 @@ getDelayExplanationByExplanationIdWithCategory: async (req, res) => {
                const delayExplanation =[
                     {
                         id: de_id,
-                        explanation_id:explanation_id,
+                        explanation_id,
                         explanation_name,
                         delay_category:{
                             id: dc_id,
