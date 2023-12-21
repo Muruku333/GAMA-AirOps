@@ -1,34 +1,128 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 // @mui
-import {TabContext, TabPanel} from "@mui/lab";
-import {Box, Container} from "@mui/material";
-// Country Component
-import { ListCTorDM, CreateCTorDM, EditCTorDM} from "../../sections/@dashboard/masters/crew_training_document_master";
+import { TabContext, TabPanel } from "@mui/lab";
+import { Box, Container } from "@mui/material";
+import Slide from "@mui/material/Slide";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
+// Crew Training Document Master Component
+import {
+  ListCTorDM,
+  CreateCTorDM,
+  EditCTorDM,
+  DeleteCTorDM,
+} from "../../sections/@dashboard/masters/crew_training_document_master";
 
-export default function CTorDMPage(props){
-    const {userData}=props;
+const TransitionLeft = (props) => {
+  return <Slide {...props} direction="left" />;
+};
 
-    const [crewTDMId,setCrewTDMId]=useState(null);
-    const [optionState, setOptionState]= useState({canCreate:false, canEdit: false, canView: false});
+const Alert = forwardRef(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
-    const handleOptionChange =(key,value)=>{
-        setOptionState((pre)=>{return {...pre,[key]:value}});
+export default function CTorDMPage(props) {
+  const { userData } = props;
+
+  const [crewTDMId, setCrewTDMId] = useState(null);
+  const [refresh, setRefresh] = useState(0);
+  const [optionState, setOptionState] = useState({
+    canCreate: false,
+    canEdit: false,
+    canView: false,
+    canDelete: false,
+  });
+  const [status, setStatus] = useState({
+    open: false,
+    type: "error",
+    message: "None",
+  });
+
+  const handleCloseAlert = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
     }
+    setStatus((prev) => ({
+      open: false,
+      type: prev.type,
+      message: prev.message,
+    }));
+  };
 
-    const handleClickCreate = () =>{
-        handleOptionChange('canCreate', !optionState.canCreate);
-    }
+  const handleOptionChange = (key, value) => {
+    setOptionState((pre) => {
+      return { ...pre, [key]: value };
+    });
+  };
 
-    const handleClickEdit = (idToEdit=null) =>{
-        setCrewTDMId(idToEdit);
-        handleOptionChange('canEdit',!optionState.canEdit);
-    }
+  const handleClickCreate = () => {
+    handleOptionChange("canCreate", !optionState.canCreate);
+  };
 
-    return(
-        <Container >
-          <ListCTorDM handleClickCreate={handleClickCreate} handleClickEdit={handleClickEdit} userData={userData}/>
-          {optionState.canCreate && <CreateCTorDM  handleClickCreate={handleClickCreate} optionState={optionState} userData={userData}/>}
-          {optionState.canEdit && <EditCTorDM handleClickEdit={handleClickEdit} optionState={optionState} idToEdit={crewTDMId} userData={userData}/>}
-        </Container>
-    );
+  const handleClickEdit = (idToEdit = null) => {
+    setCrewTDMId(idToEdit);
+    handleOptionChange("canEdit", !optionState.canEdit);
+  };
+
+  const handleClickDelete = async (idToDelete = null) => {
+    setCrewTDMId(idToDelete);
+    handleOptionChange("canDelete", !optionState.canDelete);
+  };
+
+  return (
+    <Container>
+      <ListCTorDM
+        handleClickCreate={handleClickCreate}
+        handleClickEdit={handleClickEdit}
+        handleClickDelete={handleClickDelete}
+        refresh={refresh}
+        setStatus={setStatus}
+        loggedUser={userData}
+      />
+      {optionState.canCreate && (
+        <CreateCTorDM
+          handleClickCreate={handleClickCreate}
+          optionState={optionState}
+          setRefresh={setRefresh}
+          setStatus={setStatus}
+          loggedUser={userData}
+        />
+      )}
+      {optionState.canEdit && (
+        <EditCTorDM
+          handleClickEdit={handleClickEdit}
+          optionState={optionState}
+          idToEdit={crewTDMId}
+          setRefresh={setRefresh}
+          setStatus={setStatus}
+          loggedUser={userData}
+        />
+      )}
+      {optionState.canDelete && (
+        <DeleteCTorDM
+          handleClickDelete={handleClickDelete}
+          optionState={optionState}
+          setRefresh={setRefresh}
+          idToDelete={crewTDMId}
+          setStatus={setStatus}
+          loggedUser={userData}
+        />
+      )}
+      <Snackbar
+        anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        open={status.open}
+        TransitionComponent={TransitionLeft}
+        autoHideDuration={6000}
+        onClose={handleCloseAlert}
+      >
+        <Alert
+          onClose={handleCloseAlert}
+          severity={status.type}
+          sx={{ width: "100%" }}
+        >
+          {status.message}
+        </Alert>
+      </Snackbar>
+    </Container>
+  );
 }

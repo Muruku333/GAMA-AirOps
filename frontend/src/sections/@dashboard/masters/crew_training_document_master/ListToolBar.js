@@ -56,7 +56,7 @@ export default function ListToolBar({ numSelected, filterName, onFilterName }) {
         <StyledSearch
           value={filterName}
           onChange={onFilterName}
-          placeholder="Search Model..."
+          placeholder="Search Name..."
           startAdornment={
             <InputAdornment position="start">
               <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
@@ -71,12 +71,12 @@ export default function ListToolBar({ numSelected, filterName, onFilterName }) {
             <Iconify icon="eva:trash-2-fill" />
           </IconButton>
         </Tooltip>
-      ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <Iconify icon="ic:round-filter-list" />
-          </IconButton>
-        </Tooltip>
+      ) : (null
+        // <Tooltip title="Filter list">
+        //   <IconButton>
+        //     <Iconify icon="ic:round-filter-list" />
+        //   </IconButton>
+        // </Tooltip>
       )}
     </StyledRoot>
   );

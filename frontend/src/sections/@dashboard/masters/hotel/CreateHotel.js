@@ -32,6 +32,9 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import AddIcon from "@mui/icons-material/Add";
 // Components -----------------------------------------------
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SubmitButton = styled(Button)(({ theme }) => ({
   backgroundColor: theme.palette.success.dark,
@@ -46,10 +49,42 @@ const Transition = forwardRef(function Transition(props, ref) {
 });
 
 export default function CreateHotel(props) {
-  const { optionState, handleClickCreate, userData } = props;
+  const { optionState, handleClickCreate, setRefresh, setStatus, loggedUser } = props;
 
-  const [cities, setCities]= useState(['city 1','city 2']);
+  const [cities, setCities]= useState([]);
+  const [hotelData, setHotelData] = useState({
+    hotelName:"",
+    address:"",
+    cityId:null,
+    phoneNo:"",
+    email:""
+  });
   const [validationErrors, setValidationErrors] = useState({});
+
+  useEffect( ()=>{
+    const fetchCities = async()=>{
+      try {
+        await axios.get(`${API_URL}/api/city_list`).then((response)=>{
+          // console.log(response.data);
+          setCities(response.data.results);
+        });
+      } catch (error) {
+        setCities([]);
+      }
+    }
+    // const fetchOperators = async()=>{
+    //   setOperators([]);
+    // }
+    // fetchOperators();
+    fetchCities();
+  },[]);
+
+  const handleInputChange = (field, value) => {
+    setHotelData((pre) => {
+      return { ...pre, ...{ [field]: value } };
+    });
+    setValidationErrors({});
+  };
 
   const handleClose = (event, reason) => {
     if (reason && (reason === "backdropClick" || reason === "escapeKeyDown"))
@@ -59,17 +94,47 @@ export default function CreateHotel(props) {
 
   const validate = () => {
     let errors = {};
-
+      if(!Boolean(hotelData.hotelName))
+        errors.hotelName = "Hotel Name is required";
+        if(!Boolean(hotelData.address))
+        errors.address = "Address is required";
+        if(!Boolean(hotelData.cityId))
+        errors.cityId = "City is required";
     return errors;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     // console.log('It worked');
     const errors = validate();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
+    try {
+      await axios.post(`${API_URL}/api/hotels`,{...hotelData,createdBy:loggedUser.user_id}).then((response)=>{
+        // console.log(response);
+        setStatus({
+          open:true,
+          type:'success',
+          message:response.data.message
+        });
+        setRefresh((prev)=>prev+1);
+      }).catch((error)=>{
+        // console.log(error);
+        setStatus({
+          open:true,
+          type:'error',
+          message:error.response.data.message,
+        });
+      });
+    } catch (error) {
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network connection error",
+      });
+    }
+    handleClickCreate();
   };
 
   return (
@@ -103,11 +168,11 @@ export default function CreateHotel(props) {
                   required
                   label="Hotel Name"
                   // value={aircraftData.reg_no}
-                  // onChange={(event) => {
-                  //   handleInputChange("reg_no", event.target.value);
-                  // }}
-                  // error={Boolean(validationErrors.reg_no)}
-                  // helperText={validationErrors.reg_no}
+                  onChange={(event) => {
+                    handleInputChange("hotelName", event.target.value);
+                  }}
+                  error={Boolean(validationErrors.hotelName)}
+                  helperText={validationErrors.hotelName}
                 />
               </Grid>
               <Grid item xs={4} sm={6} md={6}>
@@ -116,8 +181,14 @@ export default function CreateHotel(props) {
           label="Address"
           placeholder="Address"
           fullWidth
+          required
           multiline
           rows={3}
+          onChange={(event) => {
+            handleInputChange("address", event.target.value);
+          }}
+          error={Boolean(validationErrors.address)}
+          helperText={validationErrors.address}
         />
               </Grid>
               <Grid item xs={4} sm={6} md={6}>
@@ -125,22 +196,23 @@ export default function CreateHotel(props) {
                   fullWidth
                   size="small"
                   // value={aircraftData.model}
-                  // onChange={(event, newValue) => {
-                  //   handleInputChange("model", newValue);
-                  // }}
-                  // inputValue={inputValue}
-                  // onInputChange={(event, newInputValue) => {
-                  //   setInputValue(newInputValue);
-                  // }}
+                  onChange={(event, newValue) => {
+                    if(newValue){
+                      handleInputChange("cityId", newValue.city_id);
+                    }else{
+                      handleInputChange("cityId", null);
+                    }
+                  }}
                   id="hotel_city"
                   options={cities}
+                  getOptionLabel={(option)=>option.city_name}
                   renderInput={(params) => (
                     <TextField 
                       {...params} 
                       required
                       label="City"
-                      // error={Boolean(validationErrors.model)}
-                      // helperText={validationErrors.model}
+                      error={Boolean(validationErrors.cityId)}
+                      helperText={validationErrors.cityId}
                        />
                        )}
                        />
@@ -150,14 +222,13 @@ export default function CreateHotel(props) {
                   id="hotel_phone_no"
                   size="small"
                   fullWidth
-                  required
                   label="Phone No."
                   // value={aircraftData.reg_no}
-                  // onChange={(event) => {
-                  //   handleInputChange("reg_no", event.target.value);
-                  // }}
-                  // error={Boolean(validationErrors.reg_no)}
-                  // helperText={validationErrors.reg_no}
+                  onChange={(event) => {
+                    handleInputChange("phoneNo", event.target.value);
+                  }}
+                  error={Boolean(validationErrors.phoneNo)}
+                  helperText={validationErrors.phoneNo}
                 />
               </Grid>
               <Grid item xs={4} sm={6} md={6}>
@@ -165,14 +236,13 @@ export default function CreateHotel(props) {
                   id="hotel_email"
                   size="small"
                   fullWidth
-                  required
                   label="Email"
                   // value={aircraftData.reg_no}
-                  // onChange={(event) => {
-                  //   handleInputChange("reg_no", event.target.value);
-                  // }}
-                  // error={Boolean(validationErrors.reg_no)}
-                  // helperText={validationErrors.reg_no}
+                  onChange={(event) => {
+                    handleInputChange("email", event.target.value);
+                  }}
+                  error={Boolean(validationErrors.email)}
+                  helperText={validationErrors.email}
                 />
               </Grid>
             </Grid>

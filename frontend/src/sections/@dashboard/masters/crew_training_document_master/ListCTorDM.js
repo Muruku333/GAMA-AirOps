@@ -11,17 +11,17 @@ import Iconify from "../../../../components/iconify/Iconify";
 import Scrollbar from "../../../../components/scrollbar";
 import { filter } from "lodash";
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
 
+const API_URL = process.env.REACT_APP_API_URL;
 
 const TABLE_HEAD = [
-  // { id: "row_num", label: "S.No", alignRight: false },
-  // { id: "id", label: "Quotation ID", alignRight: false  },
-  { id: "quotation_no", label: "Name", alignRight: false },
-  { id: "customer_name", label: "Type Name", alignRight: false },
-  { id: "label", label: "Group Code", alignRight: false },
-  { id: "label", label: "Warning Days", alignRight: false },
-  { id: "label", label: "Frequency", alignRight: false },
-    { id: "label", label: "Renewal Period", alignRight: false },
+  { id: "ctdm_name", label: "Name", alignRight: false },
+  { id: "type", label: "Type", alignRight: false },
+  { id: "group_code", label: "Group Code", alignRight: false },
+  { id: "warning_days", label: "Warning Days", alignRight: false },
+  { id: "frequency", label: "Frequency", alignRight: false },
+    { id: "renewal_period", label: "Renewal Period", alignRight: false },
   { id: "" },
 ];
 
@@ -51,7 +51,7 @@ function applySortFilter(array, comparator, query) {
   if (query) {
     return filter(
       array,
-      (_user) => _user.quotation_no.toLowerCase().indexOf(query.toLowerCase()) !== -1
+      (_ctdm) => _ctdm.ctdm_name.toLowerCase().indexOf(query.toLowerCase()) !== -1
     );
   }
   return stabilizedThis.map((el) => el[0]);
@@ -59,9 +59,11 @@ function applySortFilter(array, comparator, query) {
 
 export default function ListCTorDM(props){
     
- const {handleClickCreate, handleClickEdit, handleClickView }=props;
+  const {handleClickCreate, handleClickEdit, handleClickDelete, setStatus, refresh, loggedUser }=props;
 
  const [CTDMRows, setCTDMRows]=useState([]);
+
+ const [CTDMId, setCTDMId] = useState(null);
 
  const [open, setOpen] = useState(null);
 
@@ -77,7 +79,37 @@ export default function ListCTorDM(props){
 
  const [rowsPerPage, setRowsPerPage] = useState(5);
 
- const handleOpenMenu = (event) => {
+ useEffect(()=>{
+  const fetchData= async()=>{
+    
+    try {
+      await axios.get(`${API_URL}/api/crew_training_document_master`).then((response)=> {
+        if(response.data.status){
+          setCTDMRows(response.data.results);
+          // console.log(response.data.results);
+        }
+      }).catch((error)=> {
+        setCTDMRows([]);
+        setStatus({
+          open:true,
+          type:'error',
+          message:error.response.data.message,
+        });
+      });
+    } catch (error) {
+      setCTDMRows([]);
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network Connection Error",
+      });
+    }
+  }
+  fetchData();
+ },[refresh]);
+
+ const handleOpenMenu = (event, id) => {
+  setCTDMId(id);
   setOpen(event.currentTarget);
 };
 
@@ -93,7 +125,7 @@ const handleRequestSort = (event, property) => {
 
 const handleSelectAllClick = (event) => {
   if (event.target.checked) {
-    const newSelecteds = CTDMRows.map((n) => n.quotation_no);
+    const newSelecteds = CTDMRows.map((n) => n.ctdm_id);
     setSelected(newSelecteds);
     return;
   }
@@ -135,13 +167,13 @@ const handleFilterByName = (event) => {
 const emptyRows =
   page > 0 ? Math.max(0, (1 + page) * rowsPerPage - CTDMRows.length) : 0;
 
-const filteredUsers = applySortFilter(
+const filteredCTDMs = applySortFilter(
   CTDMRows,
   getComparator(order, orderBy),
   filterName
 );
 
-const isNotFound = !filteredUsers.length && !!filterName;
+const isNotFound = !filteredCTDMs.length && !!filterName;
 
  const breadcrumbs = [
     <Link
@@ -206,7 +238,7 @@ const isNotFound = !filteredUsers.length && !!filterName;
             
           <TableContainer sx={{ maxHeight:450, minWidth: 800 }}>
             <Table
-              stickyHeader aria-label="sticky table"
+              stickyHeader aria-label="sticky table" size="small"
             >
               <ListHead
                 order={order}
@@ -219,60 +251,80 @@ const isNotFound = !filteredUsers.length && !!filterName;
               />
 
 <TableBody>
-                {filteredUsers
+{!(filteredCTDMs.length > 0) && !(isNotFound) && (
+                          <TableRow sx={{height:300}}>
+                            <TableCell colSpan={7}>
+                              <Stack spacing={1}>
+                                <Box
+                                  component="img"
+                                  src="/assets/icons/ic_content.svg"
+                                  sx={{ height: 120, mx: "auto" }}
+                                />{" "}
+                                <Typography
+                                  textAlign={"center"}
+                                  variant="subtitle1"
+                                  color={"text.secondary"}
+                                  component={"span"}
+                                >
+                                  No Data
+                                </Typography>
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                {filteredCTDMs
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => {
                     const {
-                      id,
-                      row_num,
-                      quotation_no,
-                      customer_name,
-                      label,
-                      created_by,
-                      created_at,
+                      ctdm_id,
+                      ctdm_name,
+                      type,
+                      group_code,
+                      warning_days,
+                      frequency_unit,
+                      frequency,
+                      renewal_period,
                     } = row;
-                    const selectedUser = selected.indexOf(quotation_no) !== -1;
+                    const selectedCTDM = selected.indexOf(ctdm_id) !== -1;
 
                     return (
                       <TableRow
                         hover
-                        key={quotation_no}
+                        key={ctdm_id}
                         tabIndex={-1}
                         role="checkbox"
-                        selected={selectedUser}
+                        selected={selectedCTDM}
                       >
-                        <TableCell padding="checkbox">
+                        {/* <TableCell padding="checkbox">
                           <Checkbox
-                            checked={selectedUser}
+                            checked={selectedCTDM}
                             onChange={(event) =>
-                              handleClick(event, quotation_no)
+                              handleClick(event, ctdm_id)
                             }
                           />
-                        </TableCell>
+                        </TableCell> */}
 
                         <TableCell align="left">
-                          {" "}
                           <Typography variant="subtitle2" noWrap>
-                            {quotation_no}
+                            {ctdm_name}
                           </Typography>
                         </TableCell>
 
-                        <TableCell align="left">{customer_name}</TableCell>
+                        <TableCell align="left">{type}</TableCell>
 
-                        <TableCell align="left">{label}</TableCell>
+                        <TableCell align="left">{group_code}</TableCell>
 
-                        <TableCell align="left">{created_by}</TableCell>
+                        <TableCell align="left">{warning_days}</TableCell>
 
-                        <TableCell align="left">
-                          {/* <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label> */}
-                          {`${new Date(created_at).toLocaleString("en-GB")}`}
-                        </TableCell>
+                        <TableCell align="left">{frequency} {frequency_unit}</TableCell>
+
+                        <TableCell align="left">{renewal_period}</TableCell>
 
                         <TableCell align="right">
                           <IconButton
-                            size="large"
+                            // size="large"
                             color="inherit"
-                            onClick={handleOpenMenu}
+                            onClick={(e)=>{handleOpenMenu(e,ctdm_id)}}
                           >
                             <Iconify icon={"eva:more-vertical-fill"} />
                           </IconButton>
@@ -281,8 +333,8 @@ const isNotFound = !filteredUsers.length && !!filterName;
                     );
                   })}
                 {emptyRows > 0 && (
-                  <TableRow style={{ height: 53 * emptyRows }}>
-                    <TableCell colSpan={6} />
+                  <TableRow style={{ height: 49 * emptyRows }}>
+                    <TableCell colSpan={7} />
                   </TableRow>
                 )}
               </TableBody>
@@ -290,7 +342,7 @@ const isNotFound = !filteredUsers.length && !!filterName;
               {isNotFound && (
                 <TableBody>
                   <TableRow>
-                    <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                    <TableCell align="center" colSpan={7} sx={{ py: 3 }}>
                       <Paper
                         sx={{
                           textAlign: "center",
@@ -342,12 +394,12 @@ const isNotFound = !filteredUsers.length && !!filterName;
           },
         }}
       >
-        <MenuItem>
+        <MenuItem onClick={()=>{handleClickEdit(CTDMId);handleCloseMenu();}}>
           <Iconify icon={"eva:edit-fill"} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: "error.main" }}>
+        <MenuItem sx={{ color: "error.main" }} onClick={()=>{handleClickDelete(CTDMId);handleCloseMenu();}}>
           <Iconify icon={"eva:trash-2-outline"} sx={{ mr: 2 }} />
           Delete
         </MenuItem>

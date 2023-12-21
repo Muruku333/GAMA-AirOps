@@ -11,10 +11,10 @@ router
 
 
 router
-.route('/hotels/:id')
-.get(hotelController.getHotelById)
-.put(validation.updateHotelById, hotelController.updateHotelById)
-.delete(hotelController.deleteHotelById);
+.route('/hotels/:hotel_id')
+.get(hotelController.getHotelByHotelId)
+.put(validation.updateHotelById, hotelController.updateHotelByHotelId)
+.delete(hotelController.deleteHotelByHotelId);
 
 
 module.exports = router;

@@ -2,38 +2,48 @@ const { check } = require("express-validator");
 
 const hotelValidation = {
   createHotel: [
-    check("name")
+    check("hotelName")
       .exists()
-      .withMessage("Name is required")
+      .withMessage("Hotel Name is required")
       .notEmpty()
-      .withMessage("Name cannot be empty"),
+      .withMessage("Hotel Name cannot be empty"),
     check("address")
       .exists()
       .withMessage("Address is required")
       .notEmpty()
       .withMessage("Address cannot be empty"),
-    check("city")
+    check("cityId")
       .exists()
-      .withMessage("City is required")
+      .withMessage("City Id is required")
       .notEmpty()
-      .withMessage("City cannot be empty"),
+      .withMessage("City Id cannot be empty"),
+    check("createdBy")
+      .exists()
+      .withMessage("Created By is required")
+      .notEmpty()
+      .withMessage("Created By cannot be empty"),
   ],
   updateHotelById: [
-    check("name")
+    check("hotelName")
       .exists()
-      .withMessage("Name is required")
+      .withMessage("Hotel Name is required")
       .notEmpty()
-      .withMessage("Name cannot be empty"),
+      .withMessage("Hotel Name cannot be empty"),
     check("address")
       .exists()
       .withMessage("Address is required")
       .notEmpty()
       .withMessage("Address cannot be empty"),
-    check("city")
+    check("cityId")
       .exists()
-      .withMessage("City is required")
+      .withMessage("City Id is required")
       .notEmpty()
-      .withMessage("City cannot be empty"),
+      .withMessage("City Id cannot be empty"),
+    check("modifiedBy")
+      .exists()
+      .withMessage("Modified By is required")
+      .notEmpty()
+      .withMessage("Modified By cannot be empty"),
   ],
 };
 

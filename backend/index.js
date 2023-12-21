@@ -52,6 +52,7 @@ app.use(
   require("./src/routes/masters/city"),
   require("./src/routes/masters/delay_category"),
   require("./src/routes/masters/delay_explanation"),
+  require("./src/routes/masters/crew_training_document_master"),
   require("./src/routes/masters/hotel")
 );
 

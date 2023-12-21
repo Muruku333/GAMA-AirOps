@@ -16,8 +16,6 @@ import axios from "axios";
 const API_URL = process.env.REACT_APP_API_URL;
 
 const TABLE_HEAD = [
-  // { id: "row_num", label: "S.No", alignRight: false },
-  // { id: "id", label: "Quotation ID", alignRight: false  },
   { id: "explanation_name", label: "Explanation Name", alignRight: false },
   { id: "category_name", label: "Delay Category", alignRight: false },
   { id: "" },

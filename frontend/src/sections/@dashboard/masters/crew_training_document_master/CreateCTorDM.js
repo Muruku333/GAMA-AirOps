@@ -32,6 +32,9 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import AddIcon from "@mui/icons-material/Add";
 // Components -----------------------------------------------
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const SubmitButton = styled(Button)(({ theme }) => ({
   backgroundColor: theme.palette.success.dark,
@@ -46,12 +49,30 @@ const Transition = forwardRef(function Transition(props, ref) {
 });
 
 export default function CreateCTorDM(props) {
-  const { optionState, handleClickCreate, userData } = props;
+
+  const { optionState, handleClickCreate, setRefresh, setStatus, loggedUser } = props;
 
   const [types, setTypes]= useState(['Document','Training','Checks']);
-  const [frequencyUnits, setFrequencyUnits] = useState(['unit 1', 'unit 2']);
-  const [renewalPeriods, setRenewalPeriods] = useState(['period 1', 'period 2']);
+  const [frequencyUnits, setFrequencyUnits] = useState(['Days', 'Months', 'Years']);
+  const [renewalPeriods, setRenewalPeriods] = useState(['Date-To-Date', '30 Days', '60 Days', '90 Days']);
+  const [CTDMData, setCDTMData]= useState({
+    type:"",
+    ctdmName:"",
+    groupCode:"",
+    warningDays:0,
+    frequencyUnit:"",
+    frequency:0,
+    renewalPeriod:"",
+  });
   const [validationErrors, setValidationErrors] = useState({});
+
+
+  const handleInputChange = (field, value) => {
+    setCDTMData((pre) => {
+      return { ...pre, ...{ [field]: value } };
+    });
+    setValidationErrors({});
+  };
 
   const handleClose = (event, reason) => {
     if (reason && (reason === "backdropClick" || reason === "escapeKeyDown"))
@@ -60,18 +81,53 @@ export default function CreateCTorDM(props) {
   };
 
   const validate = () => {
-    let errors = {};
 
+    let errors = {};
+      if(!Boolean(CTDMData.ctdmName))
+        errors.ctdmName="Name is required";
+      if(!Boolean(CTDMData.type))
+        errors.type="Type is required";
+      if(!Boolean(CTDMData.renewalPeriod))
+        errors.renewalPeriod="Renewal Period is required";
+      if(isNaN(CTDMData.frequency))
+        errors.frequency="Should be a number";
+      if(isNaN(CTDMData.warningDays))
+        errors.warningDays="Should be a number";
     return errors;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     // console.log('It worked');
     const errors = validate();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
+    try {
+      await axios.post(`${API_URL}/api/crew_training_document_master`,{...CTDMData,createdBy:loggedUser.user_id}).then((response)=>{
+        // console.log(response);
+        setStatus({
+          open:true,
+          type:'success',
+          message:response.data.message
+        });
+        setRefresh((prev)=>prev+1);
+      }).catch((error)=>{
+        // console.log(error);
+        setStatus({
+          open:true,
+          type:'error',
+          message:error.response.data.message,
+        });
+      });
+    } catch (error) {
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network connection error",
+      });
+    }
+    handleClickCreate();
   };
 
   return (
@@ -103,10 +159,10 @@ export default function CreateCTorDM(props) {
               <Autocomplete
                   fullWidth
                   size="small"
-                  // value={aircraftData.model}
-                  // onChange={(event, newValue) => {
-                  //   handleInputChange("model", newValue);
-                  // }}
+                  // value={CTDMData.type}
+                  onChange={(event, newValue) => {
+                    handleInputChange("type", newValue);
+                  }}
                   // inputValue={inputValue}
                   // onInputChange={(event, newInputValue) => {
                   //   setInputValue(newInputValue);
@@ -118,8 +174,8 @@ export default function CreateCTorDM(props) {
                       {...params} 
                       required
                       label="Type"
-                      // error={Boolean(validationErrors.model)}
-                      // helperText={validationErrors.model}
+                      error={Boolean(validationErrors.type)}
+                      helperText={validationErrors.type}
                        />
                        )}
                        />
@@ -131,12 +187,12 @@ export default function CreateCTorDM(props) {
                   fullWidth
                   required
                   label="Name"
-                  // value={aircraftData.reg_no}
-                  // onChange={(event) => {
-                  //   handleInputChange("reg_no", event.target.value);
-                  // }}
-                  // error={Boolean(validationErrors.reg_no)}
-                  // helperText={validationErrors.reg_no}
+                  // value={CTDMData.ctdmName}
+                  onChange={(event) => {
+                    handleInputChange("ctdmName", event.target.value);
+                  }}
+                  error={Boolean(validationErrors.ctdmName)}
+                  helperText={validationErrors.ctdmName}
                 />
               </Grid>
               <Grid item xs={4} sm={6} md={6}>
@@ -144,15 +200,14 @@ export default function CreateCTorDM(props) {
                   id="CTDM_group_code"
                   size="small"
                   fullWidth
-                  required
                   label="Group Code"
                   placeholder="Group Code"
-                  // value={aircraftData.reg_no}
-                  // onChange={(event) => {
-                  //   handleInputChange("reg_no", event.target.value);
-                  // }}
-                  // error={Boolean(validationErrors.reg_no)}
-                  // helperText={validationErrors.reg_no}
+                  // value={CTDMData.groupCode}
+                  onChange={(event) => {
+                    handleInputChange("groupCode", event.target.value);
+                  }}
+                  error={Boolean(validationErrors.groupCode)}
+                  helperText={validationErrors.groupCode}
                 />
               </Grid>
               <Grid item xs={4} sm={6} md={6}>
@@ -160,24 +215,23 @@ export default function CreateCTorDM(props) {
                   id="CTDM_warning_days"
                   size="small"
                   fullWidth
-                  required
                   label="Warning Days"
-                  // value={aircraftData.reg_no}
-                  // onChange={(event) => {
-                  //   handleInputChange("reg_no", event.target.value);
-                  // }}
-                  // error={Boolean(validationErrors.reg_no)}
-                  // helperText={validationErrors.reg_no}
+                  value={CTDMData.warningDays}
+                  onChange={(event) => {
+                    handleInputChange("warningDays", event.target.value);
+                  }}
+                  error={Boolean(validationErrors.warningDays)}
+                  helperText={validationErrors.warningDays}
                 />
               </Grid>
               <Grid item xs={4} sm={6} md={6}>
               <Autocomplete
                   fullWidth
                   size="small"
-                  // value={aircraftData.model}
-                  // onChange={(event, newValue) => {
-                  //   handleInputChange("model", newValue);
-                  // }}
+                  // value={CTDMData.frequencyUnit}
+                  onChange={(event, newValue) => {
+                    handleInputChange("frequencyUnit", newValue);
+                  }}
                   // inputValue={inputValue}
                   // onInputChange={(event, newInputValue) => {
                   //   setInputValue(newInputValue);
@@ -186,11 +240,10 @@ export default function CreateCTorDM(props) {
                   options={frequencyUnits}
                   renderInput={(params) => (
                     <TextField 
-                      {...params} 
-                      required
+                      {...params}
                       label="Frequency Unit"
-                      // error={Boolean(validationErrors.model)}
-                      // helperText={validationErrors.model}
+                      error={Boolean(validationErrors.frequencyUnit)}
+                      helperText={validationErrors.frequencyUnit}
                        />
                        )}
                        />
@@ -200,24 +253,23 @@ export default function CreateCTorDM(props) {
                   id="CTDM_frequency"
                   size="small"
                   fullWidth
-                  required
                   label="Frequency"
-                  // value={aircraftData.reg_no}
-                  // onChange={(event) => {
-                  //   handleInputChange("reg_no", event.target.value);
-                  // }}
-                  // error={Boolean(validationErrors.reg_no)}
-                  // helperText={validationErrors.reg_no}
+                  value={CTDMData.frequency}
+                  onChange={(event) => {
+                    handleInputChange("frequency", event.target.value);
+                  }}
+                  error={Boolean(validationErrors.frequency)}
+                  helperText={validationErrors.frequency}
                 />
               </Grid>
               <Grid item xs={4} sm={6} md={6}>
               <Autocomplete
                   fullWidth
                   size="small"
-                  // value={aircraftData.model}
-                  // onChange={(event, newValue) => {
-                  //   handleInputChange("model", newValue);
-                  // }}
+                  // value={CTDMData.renewalPeriod}
+                  onChange={(event, newValue) => {
+                    handleInputChange("renewalPeriod", newValue);
+                  }}
                   // inputValue={inputValue}
                   // onInputChange={(event, newInputValue) => {
                   //   setInputValue(newInputValue);
@@ -229,8 +281,8 @@ export default function CreateCTorDM(props) {
                       {...params} 
                       required
                       label="Renewal Period"
-                      // error={Boolean(validationErrors.model)}
-                      // helperText={validationErrors.model}
+                      error={Boolean(validationErrors.renewalPeriod)}
+                      helperText={validationErrors.renewalPeriod}
                        />
                        )}
                        />
