@@ -6,6 +6,7 @@ const AircraftController = {
 
 createAircraft: async (req, res) => {
         try {
+            // console.log(req.body);
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return status.ResponseStatus(res, 400, "Validation Failed", errors);
@@ -42,6 +43,7 @@ createAircraft: async (req, res) => {
         }
         return status.ResponseStatus(res, 400, `Failed to create Aircraft`);
         } catch (error) {
+        // console.log(error);
         return status.ResponseStatus(res, 500, "Internal server error", { error: error.message });
         }
 },
@@ -229,6 +231,7 @@ getAircraftByIdWithMappedData: async (req, res) => {
 
 updateAircraftByAircraftId: async (req, res) => {
     try {
+       console.log(req.body);
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return status.ResponseStatus(res, 400, "Validation Failed", errors);
@@ -265,6 +268,7 @@ updateAircraftByAircraftId: async (req, res) => {
     }
     return status.ResponseStatus(res, 404, `Failed to update Aircraft`);
     } catch (error) {
+        console.log(error);
     return status.ResponseStatus(res, 500, "Internal server error", { error: error.message });
     }
 },

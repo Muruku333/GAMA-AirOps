@@ -47,6 +47,7 @@ app.use("/auth",
 app.use(
   "/api",
   require("./src/routes/users"),
+  require("./src/routes/masters/operator"),
   require("./src/routes/masters/aircraft_model"),
   require("./src/routes/masters/aircraft"),
   require("./src/routes/masters/country"),

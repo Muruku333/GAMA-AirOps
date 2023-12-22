@@ -58,35 +58,33 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 export default function CreateAircraft(props) {
 
-  const { handleTabChange, userData} = props;
+  const { handleTabChange, setStatus, loggedUser } = props;
 
-  const [operators, setOperators] = useState(["Sparzana Aviation Pvt Ltd"]);
-  const [models, setModels] = useState(null);
+  const [operators, setOperators] = useState([]);
+  const [models, setModels] = useState([]);
   const [timeFormats, setTimeFormats] = useState(["Local Time", "UTC"]);
   const [units, setUnits] = useState(['Kilo Grams', 'Pounds'])
   const [aircraftData, setAircraftData] = useState({
-    operator: operators[0],
-    reg_no: "",
-    model: null,
-    min_cabin_crew: 0,
-    min_flight_crew: 0,
-    no_of_captain: 0,
-    no_of_fo: 0,
-    no_of_fe: 0,
-    c_cls_capacity: 0,
-    y_cls_capacity: 0,
-    seating_capacity: 0,
-    time_formate: null,
-    local_time: 0,
-    utc_time: 0,
-    block_opening_hrs: "0:00",
-    time_in_air_opening_hrs: "0:00",
-    not_in_service: false,
-    not_in_service_from:null,
-    freight_capacity: "0.00",
+    operatorId: "OP-0001",
+    regNo: "",
+    modelId: null,
+    minCabinCrew: 0,
+    minFlightCrew: 0,
+    noOfCaptain: 0,
+    noOfFo: 0,
+    noOfFe: 0,
+    cClsCapacity: 0,
+    yClsCapacity: 0,
+    seatingCapacity: 0,
+    timeFormat: null,
+    // local_time: 0,
+    // utc_time: 0,
+    blockOpeningHrs: "0:00",
+    timeInAirOpeningHrs: "0:00",
+    notInService: false,
+    notInServiceFrom:null,
+    freightCapacity: 0.00,
     unit: null,
-    created_by: "",
-    modified_by: "",
   });
   const [validationErrors, setValidationErrors] = useState({});
   const [openAlert, setOpenAlert]= useState(false);
@@ -95,17 +93,24 @@ export default function CreateAircraft(props) {
     const fetchModels= async()=>{
       try {
         await axios.get(`${API_URL}/api/aircraft_models`).then((response)=>{
-          console.log(response.data);
+          // console.log(response.data);
           setModels(response.data.results);
         });
       } catch (error) {
         setModels([]);
       }
     }
-    // const fetchOperators = async()=>{
-    //   setOperators([]);
-    // }
-    // fetchOperators();
+    const fetchOperators = async()=>{
+      try {
+        await axios.get(`${API_URL}/api/operators`).then((response)=>{
+          // console.log(response.data);
+          setOperators(response.data.results);
+        });
+      } catch (error) {
+        setOperators([]);
+      }
+    }
+    fetchOperators();
     fetchModels();
   },[]);
 
@@ -123,28 +128,53 @@ export default function CreateAircraft(props) {
   const validateAircraftData=()=>{
     let errors={};
 
-    if(!Boolean(aircraftData.operator))
-      errors.operator="Operator is required.";
-    if(!Boolean(aircraftData.reg_no))
-      errors.reg_no="Reg. No is required.";
-    if (!Boolean(aircraftData.model))
-      errors.model="Model is required.";
-    if (!Boolean(aircraftData.min_flight_crew))
-      errors.min_flight_crew="Min. Flight Crew is required.";
-    if (!Boolean(aircraftData.time_formate))
-      errors.time_formate="Time Formate is required.";
+    if(!Boolean(aircraftData.operatorId))
+      errors.operatorId="Operator is required.";
+    if(!Boolean(aircraftData.regNo))
+      errors.regNo="Reg. No is required.";
+    if (!Boolean(aircraftData.modelId))
+      errors.modelId="Model is required.";
+    if (!Boolean(aircraftData.minFlightCrew))
+      errors.minFlightCrew="Min. Flight Crew is required.";
+    if (!Boolean(aircraftData.timeFormat))
+      errors.timeFormat="Time Formate is required.";
 
     return errors;
   }
 
-  const handleSubmitAircraft = (event) => {
+  const handleSubmitAircraft = async (event) => {
     // console.log('It worked');
     const errors=validateAircraftData();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
-    console.log(aircraftData);
+    // console.log(aircraftData);
+    try {
+      await axios.post(`${API_URL}/api/aircrafts`,{...aircraftData,createdBy:loggedUser.user_id}).then((response)=>{
+        // console.log(response);
+        setStatus({
+          open:true,
+          type:'success',
+          message:response.data.message
+        });
+        // setRefresh((prev)=>prev+1);
+      }).catch((error)=>{
+        // console.log(error);
+        setStatus({
+          open:true,
+          type:'error',
+          message:error.response.data.message,
+        });
+      });
+    } catch (error) {
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network connection error",
+      });
+    }
+    handleTabChange("1");
   };
 
   const breadcrumbs = [
@@ -226,9 +256,13 @@ export default function CreateAircraft(props) {
               <Grid item xs={4} sm={6} md={6}>
                 <Autocomplete
                   disabled
-                  value={aircraftData.operator}
+                  value={operators.find((_op)=>_op.operator_id === aircraftData.operatorId)||null}
                   onChange={(event, newValue) => {
-                    handleInputChange("operator", newValue);
+                    if(newValue){
+                      handleInputChange("operatorId", newValue.operator_id);
+                    }else{
+                      handleInputChange("operatorId", null);
+                    }
                   }}
                   // inputValue={inputValue}
                   // onInputChange={(event, newInputValue) => {
@@ -236,14 +270,15 @@ export default function CreateAircraft(props) {
                   // }}
                   id="aircraft_operator"
                   options={operators}
+                  getOptionLabel={(option)=>option.operator_name}
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       required
                       label="Operator"
                       variant="filled"
-                      error={Boolean(validationErrors.operator)}
-                      helperText={validationErrors.operator}
+                      error={Boolean(validationErrors.operatorId)}
+                      helperText={validationErrors.operatorId}
                     />
                   )}
                 />
@@ -256,12 +291,12 @@ export default function CreateAircraft(props) {
                   fullWidth
                   required
                   label="Reg. No:"
-                  value={aircraftData.reg_no}
+                  // value={aircraftData.regNo}
                   onChange={(event) => {
-                    handleInputChange("reg_no", event.target.value);
+                    handleInputChange("regNo", event.target.value);
                   }}
-                  error={Boolean(validationErrors.reg_no)}
-                  helperText={validationErrors.reg_no}
+                  error={Boolean(validationErrors.regNo)}
+                  helperText={validationErrors.regNo}
                 />
               </Grid>
               <Grid item xs={4} sm={6} md={6}>
@@ -271,10 +306,13 @@ export default function CreateAircraft(props) {
                   fullWidth
                   size="small"
                   getOptionLabel={(option)=> option.model_name}
-                  value={aircraftData.model}
+                  // value={models.find((_model)=>_model.model_id===aircraftData.modelId)}
                   onChange={(event, newValue) => {
-                    console.log(newValue);
-                    handleInputChange("model", newValue);
+                    if(newValue){
+                      handleInputChange("modelId", newValue.model_id);
+                    }else{
+                      handleInputChange("modelId", null);
+                    }
                   }}
                   // inputValue={inputValue}
                   // onInputChange={(event, newInputValue) => {
@@ -287,8 +325,8 @@ export default function CreateAircraft(props) {
                       {...params} 
                       required
                       label="Model"
-                      error={Boolean(validationErrors.model)}
-                      helperText={validationErrors.model}
+                      error={Boolean(validationErrors.modelId)}
+                      helperText={validationErrors.modelId}
                        />
                   )}
                 />
@@ -308,9 +346,9 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="Min. Cabin Crew"
-                  value={aircraftData.min_cabin_crew}
+                  value={aircraftData.minCabinCrew}
                   onChange={(event) => {
-                    handleInputChange("min_cabin_crew", event.target.value);
+                    handleInputChange("minCabinCrew", event.target.value);
                   }}
                 />
               </Grid>
@@ -321,12 +359,12 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="Min. Flight Crew"
-                  value={aircraftData.min_flight_crew}
+                  value={aircraftData.minFlightCrew}
                   onChange={(event) => {
-                    handleInputChange("min_flight_crew", event.target.value);
+                    handleInputChange("minFlightCrew", event.target.value);
                   }}
-                  error={Boolean(validationErrors.min_flight_crew)}
-                  helperText={validationErrors.min_flight_crew}
+                  error={Boolean(validationErrors.minFlightCrew)}
+                  helperText={validationErrors.minFlightCrew}
                 />
               </Grid>
             </Grid>
@@ -346,9 +384,9 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="No. of Captain(s)"
-                  value={aircraftData.no_of_captain}
+                  value={aircraftData.noOfCaptain}
                   onChange={(event) => {
-                    handleInputChange("no_of_captain", event.target.value);
+                    handleInputChange("noOfCaptain", event.target.value);
                   }}
                 />
               </Grid>
@@ -358,9 +396,9 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="No. of FO(s)"
-                  value={aircraftData.no_of_fo}
+                  value={aircraftData.noOfFo}
                   onChange={(event) => {
-                    handleInputChange("no_of_fo", event.target.value);
+                    handleInputChange("noOfFo", event.target.value);
                   }}
                 />
               </Grid>
@@ -370,9 +408,9 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="No. of FE(s)"
-                  value={aircraftData.no_of_fe}
+                  value={aircraftData.noOfFe}
                   onChange={(event) => {
-                    handleInputChange("no_of_fe", event.target.value);
+                    handleInputChange("noOfFe", event.target.value);
                   }}
                 />
               </Grid>
@@ -382,9 +420,9 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="cCls Capacity"
-                  value={aircraftData.c_cls_capacity}
+                  value={aircraftData.cClsCapacity}
                   onChange={(event) => {
-                    handleInputChange("c_cls_capacity", event.target.value);
+                    handleInputChange("cClsCapacity", event.target.value);
                   }}
                 />
               </Grid>
@@ -394,9 +432,9 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="yCls Capacity"
-                  value={aircraftData.y_cls_capacity}
+                  value={aircraftData.yClsCapacity}
                   onChange={(event) => {
-                    handleInputChange("y_cls_capacity", event.target.value);
+                    handleInputChange("yClsCapacity", event.target.value);
                   }}
                 />
               </Grid>
@@ -406,18 +444,18 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="Seating Capacity"
-                  value={aircraftData.seating_capacity}
+                  value={aircraftData.seatingCapacity}
                   onChange={(event) => {
-                    handleInputChange("seating_capacity", event.target.value);
+                    handleInputChange("seatingCapacity", event.target.value);
                   }}
                 />
               </Grid>
               <Grid item xs={4} sm={6} md={4}>
                 <Autocomplete
                   size="small"
-                  value={aircraftData.time_formate}
+                  value={aircraftData.timeFormat}
                   onChange={(event, newValue) => {
-                    handleInputChange("time_formate", newValue);
+                    handleInputChange("timeFormat", newValue);
                   }}
                   // inputValue={inputValue}
                   // onInputChange={(event, newInputValue) => {
@@ -430,8 +468,8 @@ export default function CreateAircraft(props) {
                       {...params} 
                       required
                       label="Time Format"
-                      error={Boolean(validationErrors.time_formate)}
-                      helperText={validationErrors.time_formate}
+                      error={Boolean(validationErrors.timeFormat)}
+                      helperText={validationErrors.timeFormat}
                       />
                   )}
                 />
@@ -442,9 +480,9 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="Block Opening Hrs"
-                  value={aircraftData.block_opening_hrs}
+                  value={aircraftData.blockOpeningHrs}
                   onChange={(event) => {
-                    handleInputChange("block_opening_hrs", event.target.value);
+                    handleInputChange("blockOpeningHrs", event.target.value);
                   }}
                 />
               </Grid>
@@ -454,10 +492,10 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="Time In Air Opening Hrs"
-                  value={aircraftData.time_in_air_opening_hrs}
+                  value={aircraftData.timeInAirOpeningHrs}
                   onChange={(event) => {
                     handleInputChange(
-                      "time_in_air_opening_hrs",
+                      "timeInAirOpeningHrs",
                       event.target.value
                     );
                   }}
@@ -486,11 +524,11 @@ export default function CreateAircraft(props) {
                           <Switch
                           disabled
                             color="primary"
-                            checked={aircraftData.not_in_service}
+                            checked={aircraftData.notInService}
                             onChange={() => {
                               handleInputChange(
-                                "not_in_service",
-                                !aircraftData.not_in_service
+                                "notInService",
+                                !aircraftData.notInService
                               );
                             }}
                             inputProps={{ "aria-label": "controlled" }}
@@ -502,18 +540,18 @@ export default function CreateAircraft(props) {
                             <DemoContainer components={["DatePicker"]}>
                               <DemoItem>
                                 <DatePicker
-                                  disabled={!aircraftData.not_in_service}
-                                  value={aircraftData.not_in_service ? aircraftData.not_in_service_from : null}
+                                  disabled={!aircraftData.notInService}
+                                  value={aircraftData.notInService ? aircraftData.notInServiceFrom : null}
                                   slotProps={{
                                     textField: {
                                       fullWidth:true,
-                                      disabled:!aircraftData.not_in_service,
+                                      disabled:!aircraftData.notInService,
                                       size: "small",
                                       placeholder: "From",
                                     },
                                   }}
                                   onChange={(newValue)=>{
-                                    handleInputChange('not_in_service_from', newValue);
+                                    handleInputChange('notInServiceFrom', newValue);
                                   }}
                                 />
                               </DemoItem>
@@ -540,10 +578,10 @@ export default function CreateAircraft(props) {
                   size="small"
                   fullWidth
                   label="Freight Capacity"
-                  value={aircraftData.freight_capacity}
+                  value={aircraftData.freightCapacity}
                   onChange={(event) => {
                     handleInputChange(
-                      "freight_capacity",
+                      "freightCapacity",
                       event.target.value
                     );
                   }}
@@ -613,6 +651,7 @@ export default function CreateAircraft(props) {
                       <DialogActions>
                         <Button
                           color="error"
+                          variant="contained"
                           onClick={() => {
                             handleTabChange("1");
                             handleClickAlert();
@@ -620,7 +659,7 @@ export default function CreateAircraft(props) {
                         >
                           Ok
                         </Button>
-                        <Button onClick={handleClickAlert}>Cancel</Button>
+                        <Button variant="outlined" onClick={handleClickAlert}>Cancel</Button>
                       </DialogActions>
                     </Dialog>
                   </Fragment>
