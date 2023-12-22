@@ -17,6 +17,14 @@ const hotelValidation = {
       .withMessage("City Id is required")
       .notEmpty()
       .withMessage("City Id cannot be empty"),
+      check("phoneNo")
+      .optional()
+      .isMobilePhone()
+      .withMessage("Should be a valid phone number"),
+      check("email")
+      .optional()
+      .isEmail()
+      .withMessage("Should be a valid emmail"),
     check("createdBy")
       .exists()
       .withMessage("Created By is required")
@@ -39,6 +47,14 @@ const hotelValidation = {
       .withMessage("City Id is required")
       .notEmpty()
       .withMessage("City Id cannot be empty"),
+    check("phoneNo")
+    .optional()
+    .isMobilePhone()
+    .withMessage("Should be a valid phone number"),
+    check("email")
+    .optional()
+    .isEmail()
+    .withMessage("Should be a valid emmail"),
     check("modifiedBy")
       .exists()
       .withMessage("Modified By is required")
