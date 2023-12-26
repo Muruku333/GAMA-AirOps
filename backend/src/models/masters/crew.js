@@ -1,33 +1,33 @@
 const db = require("../../services/db_service");
-const table_1 = "fdtl_masters_airport";
-const table_2= "fdtl_masters_airport_attachments";
-const table_3 = "fdtl_masters_airport_watch_hrs";
+const table_1 = "fdtl_masters_crew";
+const table_2= "fdtl_masters_crew_applicable_aircraft_models";
+const table_3 = "fdtl_masters_crew_applicable_critical_airports";
 
-const airport ={
-    createAirport: async (airportData)=>{
-        const [rows] = await db.query(`INSERT INTO ${table_1} SET ?`, airportData);
+const crew ={
+    createCrew: async (crewData) =>{
+        const [rows] = await db.query(`INSERT INTO ${table_1} SET ?`, crewData);
         return rows;
     },
-    createAttachments: async (attachmentsData) =>{
-        const [rows] = await db.query(`INSERT INTO ${table_2} (airport_id, file_name, file_data) VALUES ?`, [attachmentsData]);
+    createAircraftModels: async (modelData) =>{
+        const [rows] = await db.query(`INSERT INTO ${table_2} (crew_id, model_id) VALUES ?`, [modelData]);
         return rows;
     },
-    createWatchHrs: async (watchHrsData) =>{
-        const [rows] = await db.query(`INSERT INTO ${table_3} (airport_id, from_time, to_time, monday, tuesday, wednesday, thursday, friday, saturday, sunday) VALUES ?`, [watchHrsData]);
+    createCriticalAirports: async (airpotsData) =>{
+        const [rows] = await db.query(`INSERT INTO ${table_3} (crew_id, airport_id) VALUES ?`, [airpotsData]);
         return rows;
     },
-    getAllAirports: async () =>{
+    getAllCrews: async ()=>{
         const [rows, fields] = await db.query(`SELECT * FROM ${table_1};`);
         return rows;
     },
-    getAirportById: async (id)=>{
+    getCrewById: async (id)=>{
         const [rows, fields] = await db.query(
             `SELECT * FROM ${table_1} WHERE id = ?`,
             [id]
           );
           return rows;
     },
-    getAirportByCondition: async (cond) =>{
+    getCrewByCondition: async (cond)=>{
         const [rows, fields] = await db.query(
             `SELECT * FROM ${table_1} WHERE ${Object.keys(cond)
               .map((item) => `${item} = '${cond[item]}'`)
@@ -35,7 +35,7 @@ const airport ={
           );
           return rows;
     },
-    getAttachmentsByCondition: async (cond)=>{
+    getAircraftModelsByCondition: async(cond)=>{
         const [rows, fields] = await db.query(
             `SELECT * FROM ${table_2} WHERE ${Object.keys(cond)
               .map((item) => `${item} = '${cond[item]}'`)
@@ -43,7 +43,7 @@ const airport ={
           );
           return rows;
     },
-    getWatchHrsByCondition: async (cond)=>{
+    getCriticalAirportsByCondition: async (cond)=>{
         const [rows, fields] = await db.query(
             `SELECT * FROM ${table_3} WHERE ${Object.keys(cond)
               .map((item) => `${item} = '${cond[item]}'`)
@@ -51,13 +51,13 @@ const airport ={
           );
           return rows;
     },
-    updateAirportById: async(id, update)=>{
+    updateCrewById: async (id,update)=>{
         const [rows] = await db.query(
             `UPDATE ${table_1} SET ? WHERE id = ?`,[update,id]
           );
           return rows;
     },
-    updateAirportByCondition: async (cond,update)=>{
+    updateCrewByCondition: async (cond, update)=>{
         const [rows] = await db.query(
             `UPDATE ${table_1} SET ? WHERE ${Object.keys(cond)
               .map((item) => `${item} = '${cond[item]}'`)
@@ -65,7 +65,7 @@ const airport ={
           );
           return rows;
     },
-    updateAttachmentsByCondition: async (cond, update)=>{
+    updateAicraftModelsByCondition: async(cond,update)=>{
         const [rows] = await db.query(
             `UPDATE ${table_2} SET ? WHERE ${Object.keys(cond)
               .map((item) => `${item} = '${cond[item]}'`)
@@ -73,7 +73,7 @@ const airport ={
           );
           return rows;
     },
-    updateWatchHrsByCondition: async (cond, update)=>{
+    updateCriticalAirportsByCondition: async (cond, update)=>{
         const [rows] = await db.query(
             `UPDATE ${table_3} SET ? WHERE ${Object.keys(cond)
               .map((item) => `${item} = '${cond[item]}'`)
@@ -81,14 +81,14 @@ const airport ={
           );
           return rows;
     },
-    deleteAirportById: async(id)=>{
+    deleteCrewById: async(id)=>{
         const [rows] = await db.query(
             `DELETE FROM ${table_1} WHERE id = ?`,
             [id]
           );
           return rows;
     },
-    deleteAirportByCondition: async (cond)=>{
+    deleteCrewByCondition: async(cond)=>{
         const [rows] = await db.query(
             `DELETE FROM ${table_1} WHERE ${Object.keys(cond)
               .map((item) => `${item} = '${cond[item]}'`)
@@ -96,7 +96,7 @@ const airport ={
           );
           return rows;
     },
-    deleteAttachmentsByCondition: async (cond)=>{
+    deleteAircraftModelsByCondition: async (cond)=>{
         const [rows] = await db.query(
             `DELETE FROM ${table_2} WHERE ${Object.keys(cond)
               .map((item) => `${item} = '${cond[item]}'`)
@@ -104,7 +104,7 @@ const airport ={
           );
           return rows;
     },
-    deleteWatchHrsByCondition: async (cond)=>{
+    deleteCriticalAirportsByCondition: async (cond)=>{
         const [rows] = await db.query(
             `DELETE FROM ${table_3} WHERE ${Object.keys(cond)
               .map((item) => `${item} = '${cond[item]}'`)
@@ -114,4 +114,4 @@ const airport ={
     }
 };
 
-module.exports = airport;
+module.exports = crew;

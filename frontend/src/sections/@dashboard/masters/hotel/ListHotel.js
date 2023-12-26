@@ -254,7 +254,7 @@ const isNotFound = !filteredHotels.length && !!filterName;
 <TableBody>
 {!(filteredHotels.length > 0) && !(isNotFound) && (
                           <TableRow sx={{height:300}}>
-                            <TableCell colSpan={3}>
+                            <TableCell colSpan={6}>
                               <Stack spacing={1}>
                                 <Box
                                   component="img"
