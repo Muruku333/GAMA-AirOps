@@ -192,8 +192,8 @@ export default function UserPage() {
 
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Box component='img' alt={name} src={avatarUrl} />
-                            {/* <Avatar alt={name} src={avatarUrl} sx={{height: 100,width:100}}/> */}
+                            {/* <Box component='img' alt={name} src={avatarUrl} /> */}
+                            <Avatar alt={name} src={avatarUrl} sx={{ width: 56, height: 56 }} />
                             <Typography variant="subtitle2" noWrap>
                               {name}
                             </Typography>

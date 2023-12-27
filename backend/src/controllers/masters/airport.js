@@ -114,6 +114,75 @@ const AirportController = {
     }
   },
 
+  getAllAirportsWithMappedData: async (req,res)=>{
+    try {
+      const rows = await AirportModel.getAllAirportsWithMappedData();
+      if(rows.length>0){
+        let airports =[];
+        rows.map((row)=>{
+          const {
+            id,
+            airport_id,
+            airport_name,
+            iata_code,
+            iaco_code,
+            latitude,
+            longitude,
+            remark,
+            critical_airport,
+            alertable_airport,
+            ct_id,
+            city_id,
+            city_name,
+            zone_id,
+            cu_id,
+            country_id,
+            country_name,
+            created_by,
+            modified_by,
+            created_at,
+            modified_at
+          }= row;
+
+          airports =[
+            ...airports,
+            {
+              id,
+              airport_id,
+              airport_name,
+              iata_code,
+              iaco_code,
+              city:{
+                id: ct_id,
+                city_id,
+                city_name,
+                zone_id,
+              },
+              country: {
+                id: cu_id,
+                country_id,
+                country_name
+              },
+              latitude,
+              longitude,
+              remark,
+              critical_airport,
+              alertable_airport,
+              created_by,
+              modified_by,
+              created_at,
+              modified_at
+            }
+          ]
+        });
+        return status.ResponseStatus(res, 200, "List of all Airports", airports);
+      }
+      return status.ResponseStatus(res,400,"No data found");
+    } catch (error) {
+      return status.ResponseStatus(res, 500, "Internal server error", { error: error.message });
+    }
+  },
+
   getAirportByAirportId: async (req, res) => {
     try {
       const airport_id = req.params.airport_id;

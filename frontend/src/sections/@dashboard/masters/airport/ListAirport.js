@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 // @mui ------------------------------------------------------
 import {Link,Typography, Stack, Button, Box,Checkbox,IconButton,Paper,Popover,MenuItem, Breadcrumbs, Container, Card, TableContainer, Table, TableBody, TableRow,TableCell, TablePagination} from "@mui/material";
 // @mui-icons ------------------------------------------------
@@ -12,19 +11,22 @@ import Iconify from "../../../../components/iconify/Iconify";
 import Scrollbar from "../../../../components/scrollbar";
 import { filter } from "lodash";
 import { Helmet } from "react-helmet-async";
+import axios from "axios";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const TABLE_HEAD = [
   // { id: "row_num", label: "S.No", alignRight: false },
   // { id: "id", label: "Quotation ID", alignRight: false  },
-  { id: "quotation_no", label: "Name", alignRight: false },
-  { id: "customer_name", label: "IATA Code", alignRight: false },
-  { id: "label", label: "IACO Code", alignRight: false },
-  { id: "label", label: "City", alignRight: false },
-  { id: "label", label: "Country", alignRight: false },
-  { id: "label", label: "Latitude", alignRight: false },
-  { id: "label", label: "Longitude", alignRight: false },
-  { id: "label", label: "Critical", alignRight: false },
-  { id: "label", label: "Alertable", alignRight: false },
+  { id: "airport_name", label: "Airport Name", alignRight: false },
+  { id: "iata_code", label: "IATA Code", alignRight: false },
+  { id: "iaco_code", label: "IACO Code", alignRight: false },
+  { id: "city_name", label: "City", alignRight: false },
+  { id: "country_name", label: "Country", alignRight: false },
+  { id: "latitude", label: "Latitude", alignRight: false },
+  { id: "longitude", label: "Longitude", alignRight: false },
+  { id: "critical_airport", label: "Critical", alignRight: false },
+  { id: "alertable_airport", label: "Alertable", alignRight: false },
   { id: "" },
 ];
 
@@ -54,7 +56,7 @@ function applySortFilter(array, comparator, query) {
   if (query) {
     return filter(
       array,
-      (_user) => _user.quotation_no.toLowerCase().indexOf(query.toLowerCase()) !== -1
+      (_airport) => _airport.airport_name.toLowerCase().indexOf(query.toLowerCase()) !== -1
     );
   }
   return stabilizedThis.map((el) => el[0]);
@@ -62,9 +64,11 @@ function applySortFilter(array, comparator, query) {
 
 export default function ListAirport(props){
     
- const {handleTabChange, handleEditClick, userData}=props;   // handleViewClick,
+  const { handleTabChange, handleClickEdit, handleClickDelete, refresh, setStatus, loggedUser}=props;   // handleViewClick,
 
  const [airportsRows, setAirportsRows]=useState([]);
+
+ const [airportId, setAirportId] = useState(null);
 
  const [open, setOpen] = useState(null);
 
@@ -80,7 +84,37 @@ export default function ListAirport(props){
 
  const [rowsPerPage, setRowsPerPage] = useState(5);
 
- const handleOpenMenu = (event) => {
+ useEffect(()=>{
+  const fetchData= async()=>{
+    
+    try {
+      await axios.get(`${API_URL}/api/airports`).then((response)=> {
+        if(response.data.status){
+          setAirportsRows(response.data.results);
+          // console.log(response.data.results);
+        }
+      }).catch((error)=> {
+        setAirportsRows([]);
+        setStatus({
+          open:true,
+          type:'error',
+          message:error.response.data.message,
+        });
+      });
+    } catch (error) {
+      setAirportsRows([]);
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network Connection Error",
+      });
+    }
+  }
+  fetchData();
+ },[refresh]);
+
+ const handleOpenMenu = (event, id) => {
+  setAirportId(id);
   setOpen(event.currentTarget);
 };
 
@@ -96,7 +130,7 @@ const handleRequestSort = (event, property) => {
 
 const handleSelectAllClick = (event) => {
   if (event.target.checked) {
-    const newSelecteds = airportsRows.map((n) => n.quotation_no);
+    const newSelecteds = airportsRows.map((n) => n.airport_id);
     setSelected(newSelecteds);
     return;
   }
@@ -138,13 +172,13 @@ const handleFilterByName = (event) => {
 const emptyRows =
   page > 0 ? Math.max(0, (1 + page) * rowsPerPage - airportsRows.length) : 0;
 
-const filteredUsers = applySortFilter(
+const filteredAirports = applySortFilter(
   airportsRows,
   getComparator(order, orderBy),
   filterName
 );
 
-const isNotFound = !filteredUsers.length && !!filterName;
+const isNotFound = !filteredAirports.length && !!filterName;
 
  const breadcrumbs = [
     <Link
@@ -211,7 +245,7 @@ const isNotFound = !filteredUsers.length && !!filterName;
             
           <TableContainer sx={{ maxHeight:450, minWidth: 800 }}>
             <Table
-              stickyHeader aria-label="sticky table"
+              stickyHeader aria-label="sticky table" size="small"
             >
               <ListHead
                 order={order}
@@ -224,60 +258,92 @@ const isNotFound = !filteredUsers.length && !!filterName;
               />
 
 <TableBody>
-                {filteredUsers
+{!(filteredAirports.length > 0) && !(isNotFound) && (
+                          <TableRow sx={{height:300}}>
+                            <TableCell colSpan={10}>
+                              <Stack spacing={1}>
+                                <Box
+                                  component="img"
+                                  src="/assets/icons/ic_content.svg"
+                                  sx={{ height: 120, mx: "auto" }}
+                                />{" "}
+                                <Typography
+                                  textAlign={"center"}
+                                  variant="subtitle1"
+                                  color={"text.secondary"}
+                                  component={"span"}
+                                >
+                                  No Data
+                                </Typography>
+                              </Stack>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                {filteredAirports
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((row) => {
                     const {
                       id,
-                      row_num,
-                      quotation_no,
-                      customer_name,
-                      label,
+                      airport_id,
+                      airport_name,
+                      iata_code,
+                      iaco_code,
+                      city,
+                      country,
+                      latitude,
+                      longitude,
+                      remark,
+                      critical_airport,
+                      alertable_airport,
                       created_by,
                       created_at,
                     } = row;
-                    const selectedUser = selected.indexOf(quotation_no) !== -1;
+                    const selectedAirport = selected.indexOf(airport_id) !== -1;
 
                     return (
                       <TableRow
                         hover
-                        key={quotation_no}
+                        key={airport_id}
                         tabIndex={-1}
                         role="checkbox"
-                        selected={selectedUser}
+                        selected={selectedAirport}
                       >
-                        <TableCell padding="checkbox">
+                        {/* <TableCell padding="checkbox">
                           <Checkbox
-                            checked={selectedUser}
+                            checked={selectedAirport}
                             onChange={(event) =>
-                              handleClick(event, quotation_no)
+                              handleClick(event, airport_id)
                             }
                           />
-                        </TableCell>
+                        </TableCell> */}
 
                         <TableCell align="left">
-                          {" "}
                           <Typography variant="subtitle2" noWrap>
-                            {quotation_no}
+                            {airport_name}
                           </Typography>
                         </TableCell>
 
-                        <TableCell align="left">{customer_name}</TableCell>
+                        <TableCell align="left">{iata_code}</TableCell>
 
-                        <TableCell align="left">{label}</TableCell>
+                        <TableCell align="left">{iaco_code}</TableCell>
 
-                        <TableCell align="left">{created_by}</TableCell>
+                        <TableCell align="left">{city.city_name}</TableCell>
 
-                        <TableCell align="left">
-                          {/* <Label color={(status === 'banned' && 'error') || 'success'}>{sentenceCase(status)}</Label> */}
-                          {`${new Date(created_at).toLocaleString("en-GB")}`}
-                        </TableCell>
+                        <TableCell align="left">{country.country_name}</TableCell>
+
+                        <TableCell align="left">{latitude}</TableCell>
+
+                        <TableCell align="left">{longitude}</TableCell>
+
+                        <TableCell align="left">{critical_airport?'yes':'No'}</TableCell>
+
+                        <TableCell align="left">{alertable_airport?'yes':'No'}</TableCell>
 
                         <TableCell align="right">
                           <IconButton
-                            size="large"
+                            // size="large"
                             color="inherit"
-                            onClick={handleOpenMenu}
+                            onClick={(e)=>{handleOpenMenu(e,airport_id)}}
                           >
                             <Iconify icon={"eva:more-vertical-fill"} />
                           </IconButton>
@@ -286,8 +352,8 @@ const isNotFound = !filteredUsers.length && !!filterName;
                     );
                   })}
                 {emptyRows > 0 && (
-                  <TableRow style={{ height: 53 * emptyRows }}>
-                    <TableCell colSpan={6} />
+                  <TableRow style={{ height: 49 * emptyRows }}>
+                    <TableCell colSpan={10} />
                   </TableRow>
                 )}
               </TableBody>
@@ -295,7 +361,7 @@ const isNotFound = !filteredUsers.length && !!filterName;
               {isNotFound && (
                 <TableBody>
                   <TableRow>
-                    <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
+                    <TableCell align="center" colSpan={10} sx={{ py: 3 }}>
                       <Paper
                         sx={{
                           textAlign: "center",
@@ -347,12 +413,12 @@ const isNotFound = !filteredUsers.length && !!filterName;
           },
         }}
       >
-        <MenuItem>
+        <MenuItem onClick={()=>{handleClickEdit(airportId);handleCloseMenu();}}>
           <Iconify icon={"eva:edit-fill"} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: "error.main" }}>
+        <MenuItem sx={{ color: "error.main" }} onClick={()=>{handleClickDelete(airportId);handleCloseMenu();}}>
           <Iconify icon={"eva:trash-2-outline"} sx={{ mr: 2 }} />
           Delete
         </MenuItem>

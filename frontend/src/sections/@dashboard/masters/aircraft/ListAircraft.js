@@ -12,6 +12,7 @@ import Scrollbar from "../../../../components/scrollbar";
 import { filter } from "lodash";
 import { Helmet } from "react-helmet-async";
 import axios from "axios";
+import Label from "../../../../components/label";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -350,13 +351,13 @@ const isNotFound = !filteredAircrafts.length && !!filterName;
 
                         <TableCell align="left">{seating_capacity}</TableCell>
 
-                        <TableCell align="left">{not_in_service?"No":"Yes"}</TableCell>
+                        <TableCell align="left">
+                          <Label color={not_in_service?'error':'success'}>{not_in_service?"No":"Yes"}</Label>
+                          </TableCell>
 
-                        <TableCell align="left">{not_in_service?`${new Date(not_in_service_from).toLocaleDateString("en-GB", {
-           day: '2-digit',
-           month: 'short',
-           year: 'numeric',
-       })}`:null}</TableCell>
+                        <TableCell align="left">
+                          {not_in_service?<Label color='error'>{`${new Date(not_in_service_from).toLocaleDateString("en-GB")}`}</Label>:null}
+                        </TableCell>
 
                         <TableCell align="left">{last_arrival}</TableCell>
 

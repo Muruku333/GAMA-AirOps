@@ -5,7 +5,7 @@ const validation = require("../../middlewares/masters/airportValidator");
 
 router
   .route("/airports")
-  .get(airportController.getAllAirports)
+  .get(airportController.getAllAirportsWithMappedData)
   .post(airportController.createAirport);
 
 router

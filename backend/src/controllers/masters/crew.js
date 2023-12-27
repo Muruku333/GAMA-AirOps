@@ -100,11 +100,13 @@ const CrewController = {
                 const models = await CrewModel.getAircraftModelsByCondition({crew_id});
                 const criticalAirports = await CrewModel.getCriticalAirportsByCondition({crew_id});
 
+                const base64data = Buffer.from(crew[0].photo, 'binary').toString('base64');
                 const crewData =[
                     {
                         ...crew[0],
                         models,
                         criticalAirports,
+                        photo: base64data
                     }
                 ];
 

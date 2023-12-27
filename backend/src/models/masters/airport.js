@@ -20,6 +20,12 @@ const airport ={
         const [rows, fields] = await db.query(`SELECT * FROM ${table_1};`);
         return rows;
     },
+    getAllAirportsWithMappedData: async ()=>{
+        const [rows, fields] = await db.query(`SELECT ap.id, ap.airport_id, ap.airport_name, ap.iata_code, ap.iaco_code, ap.latitude, ap.longitude, ap.remark, ap.critical_airport, ap.alertable_airport, ap.created_by, ap.modified_by, ap.created_at, ap.modified_at, ct.id AS ct_id, ct.city_id, ct.city_name, ct.zone_id, cu.id AS cu_id, cu.country_id, cu.country_name FROM ${table_1} AS ap
+        INNER JOIN fdtl_masters_city AS ct ON ap.city_id=ct.city_id
+        INNER JOIN fdtl_masters_country AS cu ON ct.country_id = cu.country_id;`);
+        return rows;
+    },
     getAirportById: async (id)=>{
         const [rows, fields] = await db.query(
             `SELECT * FROM ${table_1} WHERE id = ?`,
