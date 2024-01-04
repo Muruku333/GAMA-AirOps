@@ -107,12 +107,12 @@ export default function CreateCrew(props) {
   const [onDutyAs, setOnDutyAs] = useState(["Captain", "First Officer"]);
   const [countryCodes, setCountryCodes] = useState(["+91", "+1"]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
-  const [photoB64, setPhotoB64]=useState(null);
+  const [photoB64, setPhotoB64] = useState(null);
   const [crewData, setCrewData] = useState({
     operatorId: "OP-0001",
     photo: null,
     name: "",
-    gender:"Male",
+    gender: "Male",
     code: "",
     nationality: "",
     city: "",
@@ -127,8 +127,8 @@ export default function CreateCrew(props) {
     notInService: false,
     notInServiceFrom: null,
   });
-  const [selectedModels, setSelectedModels]=useState([]);
-  const [selectedAirports, setSelectedAirports]=useState([]);
+  const [selectedModels, setSelectedModels] = useState([]);
+  const [selectedAirports, setSelectedAirports] = useState([]);
   const [value, setValue] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
   const [openAlert, setOpenAlert] = useState(false);
@@ -204,14 +204,16 @@ export default function CreateCrew(props) {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    console.log(file);
+    if(!file)
+      return;
     setSelectedPhoto(file);
-    let reader=new FileReader();
+    let reader = new FileReader();
     reader.readAsDataURL(file);
-    reader.onload=(e)=>{
-      setPhotoB64(e.target.result);
+    reader.onload = (e) => {
+      setCrewData((prev)=>{return {...prev,photo:e.target.result}});
+      // setPhotoB64(e.target.result);
       // console.log(e.target.result)
-    }
+    };
   };
 
   const handleClickAlert = () => {
@@ -221,18 +223,15 @@ export default function CreateCrew(props) {
   const validate = () => {
     let errors = {};
 
-    if(!Boolean(crewData.operatorId))
-    errors.operatorId="Operator is required.";
-    if(!Boolean(crewData.name))
-    errors.name="Name is required";
-    if(!Boolean(crewData.code))
-    errors.code="Code is required";
-    if(!Boolean(crewData.nationality))
-    errors.nationality="Nationality is required";
-    if(!Boolean(crewData.city))
-    errors.city="City is required";
-    if(!Boolean(crewData.designation))
-    errors.designation="Designation is required";
+    if (!Boolean(crewData.operatorId))
+      errors.operatorId = "Operator is required.";
+    if (!Boolean(crewData.name)) errors.name = "Name is required";
+    if (!Boolean(crewData.code)) errors.code = "Code is required";
+    if (!Boolean(crewData.nationality))
+      errors.nationality = "Nationality is required";
+    if (!Boolean(crewData.city)) errors.city = "City is required";
+    if (!Boolean(crewData.designation))
+      errors.designation = "Designation is required";
 
     return errors;
   };
@@ -244,29 +243,40 @@ export default function CreateCrew(props) {
       setValidationErrors(errors);
       return;
     }
-    console.log({...crewData,photo: selectedPhoto, createdBy:loggedUser.user_id});
     try {
-      await axios.post(`${API_URL}/api/crews`,{...crewData,photo:photoB64,models:selectedModels,criticalAirports:selectedAirports,createdBy:loggedUser.user_id}).then((response)=>{
-        // console.log(response);
-        setStatus({
-          open:true,
-          type:'success',
-          message:response.data.message
+      await axios
+        .post(
+          `${API_URL}/api/crews`,
+          {
+            ...crewData,
+            models: selectedModels,
+            criticalAirports: selectedAirports,
+            createdBy: loggedUser.user_id,
+          }
+          // { headers: { "Content-Type": "multipart/from-data" } }
+        )
+        .then((response) => {
+          // console.log(response);
+          setStatus({
+            open: true,
+            type: "success",
+            message: response.data.message,
+          });
+          // setRefresh((prev)=>prev+1);
+        })
+        .catch((error) => {
+          // console.log(error);
+          setStatus({
+            open: true,
+            type: "error",
+            message: error.response.data.message,
+          });
         });
-        // setRefresh((prev)=>prev+1);
-      }).catch((error)=>{
-        // console.log(error);
-        setStatus({
-          open:true,
-          type:'error',
-          message:error.response.data.message,
-        });
-      });
     } catch (error) {
       setStatus({
-        open:true,
-        type:'error',
-        message:"Network connection error",
+        open: true,
+        type: "error",
+        message: "Network connection error",
       });
     }
     handleTabChange("1");
@@ -358,12 +368,8 @@ export default function CreateCrew(props) {
                       {selectedPhoto && (
                         <Box
                           component={"img"}
-                          alt="Crew Photo"
-                          src={
-                            selectedPhoto
-                              ? URL.createObjectURL(selectedPhoto)
-                              : ""
-                          }
+                          // alt="Crew Photo"
+                          src={crewData.photo}
                           sx={{
                             overflow: "hidden",
                             position: "relative",
@@ -436,7 +442,12 @@ export default function CreateCrew(props) {
                       format="DD/MM/YYYY"
                       label="Date Of Birth"
                       // value={crewData.dateOfBirth}
-                      onChange={(newValue) => handleInputChange("dateOfBirth",dayjs(newValue.$d).format('YYYY-MM-DD'))}
+                      onChange={(newValue) =>
+                        handleInputChange(
+                          "dateOfBirth",
+                          dayjs(newValue.$d).format("YYYY-MM-DD")
+                        )
+                      }
                       slotProps={{
                         textField: {
                           size: "small",
@@ -455,11 +466,15 @@ export default function CreateCrew(props) {
                   <Grid item xs={4} sm={6} md={6}>
                     <Autocomplete
                       disabled
-                      value={operators.find((_op)=>_op.operator_id === crewData.operatorId)||null}
+                      value={
+                        operators.find(
+                          (_op) => _op.operator_id === crewData.operatorId
+                        ) || null
+                      }
                       onChange={(event, newValue) => {
-                        if(newValue){
+                        if (newValue) {
                           handleInputChange("operatorId", newValue.operator_id);
-                        }else{
+                        } else {
                           handleInputChange("operatorId", null);
                         }
                       }}
@@ -519,9 +534,12 @@ export default function CreateCrew(props) {
                       size="small"
                       // value={countries.find((_country)=>_country.country_name = crewData.nationality)||null}
                       onChange={(event, newValue) => {
-                        if(newValue){
-                          handleInputChange("nationality", newValue.country_name);
-                        }else{
+                        if (newValue) {
+                          handleInputChange(
+                            "nationality",
+                            newValue.country_name
+                          );
+                        } else {
                           handleInputChange("nationality", null);
                         }
                       }}
@@ -553,11 +571,15 @@ export default function CreateCrew(props) {
                         <Autocomplete
                           fullWidth
                           size="small"
-                          value={cities.find((_city)=>_city.city_name === crewData.city)||null}
+                          value={
+                            cities.find(
+                              (_city) => _city.city_name === crewData.city
+                            ) || null
+                          }
                           onChange={(event, newValue) => {
-                            if(newValue){
+                            if (newValue) {
                               handleInputChange("city", newValue.city_name);
-                            }else{
+                            } else {
                               handleInputChange("city", null);
                             }
                           }}
@@ -701,10 +723,15 @@ export default function CreateCrew(props) {
                         sx={{ p: 0, overflow: "visible" }}
                       >
                         <DatePicker
-                        format="DD/MM/YYYY"
+                          format="DD/MM/YYYY"
                           label="Date Of Joining"
                           // value={crewData.dateOfJoining}
-                          onChange={(newValue) => handleInputChange("dateOfJoining",dayjs(newValue.$d).format('YYYY-MM-DD'))}
+                          onChange={(newValue) =>
+                            handleInputChange(
+                              "dateOfJoining",
+                              dayjs(newValue.$d).format("YYYY-MM-DD")
+                            )
+                          }
                           slotProps={{
                             textField: {
                               size: "small",
@@ -738,7 +765,8 @@ export default function CreateCrew(props) {
                         multiple
                         id="tags-standard"
                         options={models}
-                        getOptionLabel={(option) => option.model_name}
+                        getOptionLabel={(option) => `${option.model_name} (${option.wing_type})`}
+                        onChange={(event,selectedValues)=> setSelectedModels(selectedValues)}
                         renderInput={(params) => (
                           <TextField
                             {...params}
@@ -759,6 +787,7 @@ export default function CreateCrew(props) {
                         id="tags-standard"
                         options={criticalAirports}
                         getOptionLabel={(option) => option.airport_name}
+                        onChange={(event,selectedValues)=> setSelectedAirports(selectedValues)}
                         renderInput={(params) => (
                           <TextField
                             {...params}

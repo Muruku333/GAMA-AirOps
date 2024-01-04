@@ -76,7 +76,11 @@ export default function DutyStatusDetailPage(props){
           />
           </TabPanel>
           <TabPanel value="3" sx={{padding:0}}>
-            <EditCrew handleTabChange={handleTabChange} idToEdit={crewId} userData={userData}/>
+            <EditCrew             
+            handleTabChange={handleTabChange}
+            idToEdit={crewId}
+            setStatus={setStatus}
+            loggedUser={userData}/>
           </TabPanel>
         </TabContext>
         {canDelete && (

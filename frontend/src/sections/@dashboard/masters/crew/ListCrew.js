@@ -376,7 +376,7 @@ const isNotFound = !filteredCrews.length && !!filterName;
                           <IconButton
                             size="large"
                             color="inherit"
-                            onClick={handleOpenMenu}
+                            onClick={(e)=>{handleOpenMenu(e,crew_id)}}
                           >
                             <Iconify icon={"eva:more-vertical-fill"} />
                           </IconButton>
@@ -446,12 +446,12 @@ const isNotFound = !filteredCrews.length && !!filterName;
           },
         }}
       >
-        <MenuItem>
+        <MenuItem onClick={()=>{handleClickEdit(crewId);handleCloseMenu();}}>
           <Iconify icon={"eva:edit-fill"} sx={{ mr: 2 }} />
           Edit
         </MenuItem>
 
-        <MenuItem sx={{ color: "error.main" }}>
+        <MenuItem sx={{ color: "error.main" }} onClick={()=>{handleClickDelete(crewId);handleCloseMenu();}}>
           <Iconify icon={"eva:trash-2-outline"} sx={{ mr: 2 }} />
           Delete
         </MenuItem>

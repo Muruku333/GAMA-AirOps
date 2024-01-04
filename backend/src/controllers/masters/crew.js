@@ -82,11 +82,14 @@ const CrewController = {
             const crews = await CrewModel.getAllCrews();
             if(crews.length>0){
                 const crewList=crews.map((crew)=>{
-                    const base64data = Buffer.from(crew.photo, 'binary').toString();
-                    return {
-                        ...crew,
-                        photo:base64data,
+                    if(crew.photo){
+                        const base64data = Buffer.from(crew.photo, 'binary').toString();
+                        return {
+                            ...crew,
+                            photo:base64data,
+                        }
                     }
+                    return crew;
                 })
                 return status.ResponseStatus(
                     res,
@@ -111,17 +114,26 @@ const CrewController = {
                 const models = await CrewModel.getAircraftModelsByCondition({crew_id});
                 const criticalAirports = await CrewModel.getCriticalAirportsByCondition({crew_id});
 
-                const base64data = Buffer.from(crew[0].photo, 'binary').toString();
-                console.log(base64data);
-                const crewData =[
+                let crewData =[
                     {
                         ...crew[0],
                         models,
                         criticalAirports,
-                        photo: base64data
                     }
                 ];
 
+                if(crew[0].photo){
+                    const base64data = Buffer.from(crew[0].photo, 'binary').toString();
+                    crewData=[
+                        {
+                            ...crew[0],
+                            models,
+                            criticalAirports,
+                            photo:base64data,
+                        }
+                    ]
+                }
+                
                 return status.ResponseStatus(
                     res,
                     200,
