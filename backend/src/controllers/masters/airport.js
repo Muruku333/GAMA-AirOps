@@ -114,6 +114,25 @@ const AirportController = {
     }
   },
 
+  getAllCriticalAirports: async (req, res)=>{
+    try {
+      const airports = await AirportModel.getAirportByCondition({critical_airport:1});
+      if (airports.length > 0) {
+        return status.ResponseStatus(
+          res,
+          200,
+          "List of all Critical Airports",
+          airports
+        );
+      }
+      return status.ResponseStatus(res, 400, "No data found");
+    } catch (error) {
+      return status.ResponseStatus(res, 500, "Internal server error", {
+        error: error.message,
+      });
+    }
+  },
+
   getAllAirportsWithMappedData: async (req,res)=>{
     try {
       const rows = await AirportModel.getAllAirportsWithMappedData();

@@ -16,30 +16,16 @@ import Label from "../../../../components/label";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-function blobToUrl(blob) {
-  console.log(blob);
-  // console.log( URL.createObjectURL(blob));
-  if (!(blob instanceof Blob)) {
-    // console.error('Invalid argument: Expected a Blob');
-    return null;
-  }
+// function blobToUrl(blob) {
+//   console.log(blob);
+//   // console.log( URL.createObjectURL(blob));
+//   if (!(blob instanceof Blob)) {
+//     // console.error('Invalid argument: Expected a Blob');
+//     return null;
+//   }
 
-  return URL.createObjectURL(blob);
-}
-
-function bufferToUrl(buffer=null){
-  if(buffer==null){
-    return null;
-  }
-  console.log(buffer.data);
-  console.log(buffer);
-  // console.log(Buffer.from(buffer.data).toString('base6'))
-  const blob = new Blob([buffer.data],{type:"image/jpg"});
-  console.log(blob);
-  const url = URL.createObjectURL(blob);
-  console.log(url);
-  return url;
-}
+//   return URL.createObjectURL(blob);
+// }
 
 const TABLE_HEAD = [
   { id: "name", label: "Name", alignRight: false },
@@ -134,6 +120,19 @@ export default function ListCrew(props){
   }
   fetchData();
  },[refresh]);
+
+ function getAvatarImage(buffer){
+  if(!buffer){
+    return null;
+  }
+  console.log(buffer.data);
+  console.log(buffer);
+  const blob = new Blob([buffer],{ type: 'image/jpeg' });
+  // console.log(blob);
+  const url = URL.createObjectURL(blob);
+  console.log(url);
+  return url;
+}
 
  const handleOpenMenu = (event, id) => {
   setCrewId(id);
@@ -265,7 +264,7 @@ const isNotFound = !filteredCrews.length && !!filterName;
         />
           <Scrollbar>
             
-          <TableContainer sx={{ maxHeight:450, minWidth: 800 }}>
+          <TableContainer sx={{ minWidth: 800 }}>
             <Table
               stickyHeader aria-label="sticky table"
             >
@@ -343,7 +342,7 @@ const isNotFound = !filteredCrews.length && !!filterName;
                         <TableCell align="left">
                         <Stack direction="row" alignItems="center" spacing={2}>
                             {/* <Box component='img' alt={name} src={avatarUrl} /> */}
-                            <Avatar alt={name} src={bufferToUrl(photo)} sx={{ width: 56, height: 56 }} />
+                            <Avatar alt={name} src={photo} sx={{ width: 56, height: 56 }} />
                             {/* <Typography variant="subtitle2" noWrap>
                               {name}
                             </Typography> */}

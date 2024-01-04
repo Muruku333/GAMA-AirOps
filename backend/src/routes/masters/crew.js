@@ -1,7 +1,11 @@
 const express = require("express");
 const crewController = require("../../controllers/masters/crew");
 const router = express.Router();
+// const multer = require('multer');
 const validation = require("../../middlewares/masters/crewValidator");
+
+// const storage = multer.memoryStorage();
+// const upload = multer({ storage: storage });
 
 router
   .route("/crews")

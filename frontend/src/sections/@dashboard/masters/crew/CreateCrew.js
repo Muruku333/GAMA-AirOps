@@ -1,4 +1,4 @@
-import { forwardRef, useState, useRef, Fragment } from "react";
+import { forwardRef, useEffect, useState, useRef, Fragment } from "react";
 import { Link as RouterLink } from "react-router-dom";
 // @mui ------------------------------------------------------
 import {
@@ -41,6 +41,10 @@ import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 // Components -----------------------------------------------
 import { Helmet } from "react-helmet-async";
 import Iconify from "../../../../components/iconify";
+import axios from "axios";
+import dayjs from "dayjs";
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 const PhotoBox = styled(Box)(({ theme }) => ({
   padding: 8,
@@ -87,24 +91,112 @@ const Transition = forwardRef(function Transition(props, ref) {
 });
 
 export default function CreateCrew(props) {
-  const { handleTabChange, userData } = props;
+  const { handleTabChange, setStatus, loggedUser } = props;
 
   const fileInputRef = useRef(null);
-  const [operators, setOperators] = useState(["Sparzana Aviation Pvt Ltd"]);
-  const [countries, setCountries] = useState(["India", "China"]);
-  const [cities, setCities] = useState(["city 1", "city 2"]);
+  const [operators, setOperators] = useState([]);
+  const [models, setModels] = useState([]);
+  const [criticalAirports, setCriticalAirports] = useState([]);
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
   const [designations, setDesignations] = useState([
     "Air Hostess",
     "First Offiecer",
     "Pilot",
   ]);
-  const [models,setModels]=useState([{title:'Hawker 800XP (Fixed Wing)'},{title:'Hawker 900XP (Fixed Wing)'}]);
   const [onDutyAs, setOnDutyAs] = useState(["Captain", "First Officer"]);
-  const [countryCodes, setCountryCodes] = useState(["code 1", "code 2"]);
+  const [countryCodes, setCountryCodes] = useState(["+91", "+1"]);
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [photoB64, setPhotoB64]=useState(null);
+  const [crewData, setCrewData] = useState({
+    operatorId: "OP-0001",
+    photo: null,
+    name: "",
+    gender:"Male",
+    code: "",
+    nationality: "",
+    city: "",
+    designation: "",
+    onDutyAs: "",
+    countryCode: "",
+    mobileNo: "",
+    dateOfBirth: null,
+    dateOfJoining: null,
+    email: "",
+    passportNo: "",
+    notInService: false,
+    notInServiceFrom: null,
+  });
+  const [selectedModels, setSelectedModels]=useState([]);
+  const [selectedAirports, setSelectedAirports]=useState([]);
   const [value, setValue] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
   const [openAlert, setOpenAlert] = useState(false);
+
+  useEffect(() => {
+    const fetchOperators = async () => {
+      try {
+        await axios.get(`${API_URL}/api/operators`).then((response) => {
+          // console.log(response.data);
+          setOperators(response.data.results);
+        });
+      } catch (error) {
+        setOperators([]);
+      }
+    };
+    const fetchCountries = async () => {
+      try {
+        await axios.get(`${API_URL}/api/countries`).then((response) => {
+          // console.log(response.data);
+          setCountries(response.data.results);
+        });
+      } catch (error) {
+        setCountries([]);
+      }
+    };
+    const fetchCities = async () => {
+      try {
+        await axios.get(`${API_URL}/api/cities`).then((response) => {
+          // console.log(response.data);
+          setCities(response.data.results);
+        });
+      } catch (error) {
+        setCities([]);
+      }
+    };
+    const fetchModels = async () => {
+      try {
+        await axios.get(`${API_URL}/api/aircraft_models`).then((response) => {
+          // console.log(response.data);
+          setModels(response.data.results);
+        });
+      } catch (error) {
+        setModels([]);
+      }
+    };
+    const fetchCriticalAirports = async () => {
+      try {
+        await axios.get(`${API_URL}/api/critical_airports`).then((response) => {
+          // console.log(response.data);
+          setCriticalAirports(response.data.results);
+        });
+      } catch (error) {
+        setCriticalAirports([]);
+      }
+    };
+    fetchOperators();
+    fetchCountries();
+    fetchCities();
+    fetchModels();
+    fetchCriticalAirports();
+  }, []);
+
+  const handleInputChange = (field, value) => {
+    const updatedCrewData = { ...crewData };
+    updatedCrewData[field] = value;
+    setCrewData(updatedCrewData);
+    setValidationErrors({});
+  };
 
   const handleClick = () => {
     fileInputRef.current.click();
@@ -112,7 +204,14 @@ export default function CreateCrew(props) {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
+    console.log(file);
     setSelectedPhoto(file);
+    let reader=new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload=(e)=>{
+      setPhotoB64(e.target.result);
+      // console.log(e.target.result)
+    }
   };
 
   const handleClickAlert = () => {
@@ -122,16 +221,55 @@ export default function CreateCrew(props) {
   const validate = () => {
     let errors = {};
 
+    if(!Boolean(crewData.operatorId))
+    errors.operatorId="Operator is required.";
+    if(!Boolean(crewData.name))
+    errors.name="Name is required";
+    if(!Boolean(crewData.code))
+    errors.code="Code is required";
+    if(!Boolean(crewData.nationality))
+    errors.nationality="Nationality is required";
+    if(!Boolean(crewData.city))
+    errors.city="City is required";
+    if(!Boolean(crewData.designation))
+    errors.designation="Designation is required";
+
     return errors;
   };
 
-  const handleSubmitAircraft = (event) => {
+  const handleSubmitAircraft = async (event) => {
     // console.log('It worked');
     const errors = validate();
     if (Object.keys(errors).length > 0) {
       setValidationErrors(errors);
       return;
     }
+    console.log({...crewData,photo: selectedPhoto, createdBy:loggedUser.user_id});
+    try {
+      await axios.post(`${API_URL}/api/crews`,{...crewData,photo:photoB64,models:selectedModels,criticalAirports:selectedAirports,createdBy:loggedUser.user_id}).then((response)=>{
+        // console.log(response);
+        setStatus({
+          open:true,
+          type:'success',
+          message:response.data.message
+        });
+        // setRefresh((prev)=>prev+1);
+      }).catch((error)=>{
+        // console.log(error);
+        setStatus({
+          open:true,
+          type:'error',
+          message:error.response.data.message,
+        });
+      });
+    } catch (error) {
+      setStatus({
+        open:true,
+        type:'error',
+        message:"Network connection error",
+      });
+    }
+    handleTabChange("1");
   };
 
   const breadcrumbs = [
@@ -191,7 +329,7 @@ export default function CreateCrew(props) {
       <Box flexGrow={1}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ py:14,px:5, overflow: "visible" }}>
+            <Card sx={{ py: 14, px: 5, overflow: "visible" }}>
               <Box mb={5}>
                 <div>
                   <PhotoBox
@@ -274,16 +412,20 @@ export default function CreateCrew(props) {
                     row
                     aria-labelledby="demo-row-radio-buttons-group-label"
                     name="row-radio-buttons-group"
+                    value={crewData.gender}
+                    onChange={(event) => {
+                      handleInputChange("gender", event.target.value);
+                    }}
                   >
                     <FormControlLabel
-                      value="female"
-                      control={<Radio />}
-                      label="Female"
-                    />
-                    <FormControlLabel
-                      value="male"
+                      value="Male"
                       control={<Radio />}
                       label="Male"
+                    />
+                    <FormControlLabel
+                      value="Female"
+                      control={<Radio />}
+                      label="Female"
                     />
                   </RadioGroup>
                 </FormControl>
@@ -291,9 +433,10 @@ export default function CreateCrew(props) {
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DemoContainer components={["DatePicker"]}>
                     <DatePicker
+                      format="DD/MM/YYYY"
                       label="Date Of Birth"
-                      value={value}
-                      onChange={(newValue) => setValue(newValue)}
+                      // value={crewData.dateOfBirth}
+                      onChange={(newValue) => handleInputChange("dateOfBirth",dayjs(newValue.$d).format('YYYY-MM-DD'))}
                       slotProps={{
                         textField: {
                           size: "small",
@@ -312,24 +455,29 @@ export default function CreateCrew(props) {
                   <Grid item xs={4} sm={6} md={6}>
                     <Autocomplete
                       disabled
-                      value={"Sparzana Aviation Pvt Ltd"}
-                      // onChange={(event, newValue) => {
-                      //   handleInputChange("operator", newValue);
-                      // }}
+                      value={operators.find((_op)=>_op.operator_id === crewData.operatorId)||null}
+                      onChange={(event, newValue) => {
+                        if(newValue){
+                          handleInputChange("operatorId", newValue.operator_id);
+                        }else{
+                          handleInputChange("operatorId", null);
+                        }
+                      }}
                       // inputValue={inputValue}
                       // onInputChange={(event, newInputValue) => {
                       //   setInputValue(newInputValue);
                       // }}
                       id="aircraft_operator"
                       options={operators}
+                      getOptionLabel={(option) => option.operator_name}
                       renderInput={(params) => (
                         <TextField
                           {...params}
                           required
                           label="Operator"
                           variant="filled"
-                          // error={Boolean(validationErrors.operator)}
-                          // helperText={validationErrors.operator}
+                          error={Boolean(validationErrors.operatorId)}
+                          helperText={validationErrors.operatorId}
                         />
                       )}
                     />
@@ -342,12 +490,12 @@ export default function CreateCrew(props) {
                       fullWidth
                       required
                       label="Name"
-                      // value={aircraftData.reg_no}
-                      // onChange={(event) => {
-                      //   handleInputChange("reg_no", event.target.value);
-                      // }}
-                      // error={Boolean(validationErrors.reg_no)}
-                      // helperText={validationErrors.reg_no}
+                      value={crewData.name}
+                      onChange={(event) => {
+                        handleInputChange("name", event.target.value);
+                      }}
+                      error={Boolean(validationErrors.name)}
+                      helperText={validationErrors.name}
                     />
                   </Grid>
                   <Grid item xs={4} sm={6} md={6}>
@@ -357,35 +505,40 @@ export default function CreateCrew(props) {
                       fullWidth
                       required
                       label="Code"
-                      // value={aircraftData.reg_no}
-                      // onChange={(event) => {
-                      //   handleInputChange("reg_no", event.target.value);
-                      // }}
-                      // error={Boolean(validationErrors.reg_no)}
-                      // helperText={validationErrors.reg_no}
+                      value={crewData.code}
+                      onChange={(event) => {
+                        handleInputChange("code", event.target.value);
+                      }}
+                      error={Boolean(validationErrors.code)}
+                      helperText={validationErrors.code}
                     />
                   </Grid>
                   <Grid item xs={4} sm={6} md={6}>
                     <Autocomplete
                       fullWidth
                       size="small"
-                      // value={aircraftData.model}
-                      // onChange={(event, newValue) => {
-                      //   handleInputChange("model", newValue);
-                      // }}
+                      // value={countries.find((_country)=>_country.country_name = crewData.nationality)||null}
+                      onChange={(event, newValue) => {
+                        if(newValue){
+                          handleInputChange("nationality", newValue.country_name);
+                        }else{
+                          handleInputChange("nationality", null);
+                        }
+                      }}
                       // inputValue={inputValue}
                       // onInputChange={(event, newInputValue) => {
                       //   setInputValue(newInputValue);
                       // }}
                       id="crew_nationality"
                       options={countries}
+                      getOptionLabel={(option) => option.country_name}
                       renderInput={(params) => (
                         <TextField
                           {...params}
                           required
                           label="Nationality"
-                          // error={Boolean(validationErrors.model)}
-                          // helperText={validationErrors.model}
+                          error={Boolean(validationErrors.nationality)}
+                          helperText={validationErrors.nationality}
                         />
                       )}
                     />
@@ -400,23 +553,28 @@ export default function CreateCrew(props) {
                         <Autocomplete
                           fullWidth
                           size="small"
-                          // value={aircraftData.model}
-                          // onChange={(event, newValue) => {
-                          //   handleInputChange("model", newValue);
-                          // }}
+                          value={cities.find((_city)=>_city.city_name === crewData.city)||null}
+                          onChange={(event, newValue) => {
+                            if(newValue){
+                              handleInputChange("city", newValue.city_name);
+                            }else{
+                              handleInputChange("city", null);
+                            }
+                          }}
                           // inputValue={inputValue}
                           // onInputChange={(event, newInputValue) => {
                           //   setInputValue(newInputValue);
                           // }}
                           id="crew_cities"
                           options={cities}
+                          getOptionLabel={(option) => option.city_name}
                           renderInput={(params) => (
                             <TextField
                               {...params}
                               required
                               label="City"
-                              // error={Boolean(validationErrors.model)}
-                              // helperText={validationErrors.model}
+                              error={Boolean(validationErrors.city)}
+                              helperText={validationErrors.city}
                             />
                           )}
                         />
@@ -439,10 +597,10 @@ export default function CreateCrew(props) {
                     <Autocomplete
                       fullWidth
                       size="small"
-                      // value={aircraftData.model}
-                      // onChange={(event, newValue) => {
-                      //   handleInputChange("model", newValue);
-                      // }}
+                      // value={crewData.designation}
+                      onChange={(event, newValue) => {
+                        handleInputChange("designation", newValue);
+                      }}
                       // inputValue={inputValue}
                       // onInputChange={(event, newInputValue) => {
                       //   setInputValue(newInputValue);
@@ -454,8 +612,8 @@ export default function CreateCrew(props) {
                           {...params}
                           required
                           label="Designation"
-                          // error={Boolean(validationErrors.model)}
-                          // helperText={validationErrors.model}
+                          error={Boolean(validationErrors.designation)}
+                          helperText={validationErrors.designation}
                         />
                       )}
                     />
@@ -464,10 +622,10 @@ export default function CreateCrew(props) {
                     <Autocomplete
                       fullWidth
                       size="small"
-                      // value={aircraftData.model}
-                      // onChange={(event, newValue) => {
-                      //   handleInputChange("model", newValue);
-                      // }}
+                      // value={crewData.onDutyAs}
+                      onChange={(event, newValue) => {
+                        handleInputChange("onDutyAs", newValue);
+                      }}
                       // inputValue={inputValue}
                       // onInputChange={(event, newInputValue) => {
                       //   setInputValue(newInputValue);
@@ -478,8 +636,8 @@ export default function CreateCrew(props) {
                         <TextField
                           {...params}
                           label="On Duty As"
-                          // error={Boolean(validationErrors.model)}
-                          // helperText={validationErrors.model}
+                          // error={Boolean(validationErrors.onDutyAs)}
+                          // helperText={validationErrors.onDutyAs}
                         />
                       )}
                     />
@@ -488,10 +646,10 @@ export default function CreateCrew(props) {
                     <Autocomplete
                       fullWidth
                       size="small"
-                      // value={aircraftData.model}
-                      // onChange={(event, newValue) => {
-                      //   handleInputChange("model", newValue);
-                      // }}
+                      // value={crewData.countryCode}
+                      onChange={(event, newValue) => {
+                        handleInputChange("countryCode", newValue);
+                      }}
                       // inputValue={inputValue}
                       // onInputChange={(event, newInputValue) => {
                       //   setInputValue(newInputValue);
@@ -502,8 +660,8 @@ export default function CreateCrew(props) {
                         <TextField
                           {...params}
                           label="Country Codes"
-                          // error={Boolean(validationErrors.model)}
-                          // helperText={validationErrors.model}
+                          // error={Boolean(validationErrors.countryCode)}
+                          // helperText={validationErrors.countryCode}
                         />
                       )}
                     />
@@ -514,12 +672,12 @@ export default function CreateCrew(props) {
                       size="small"
                       fullWidth
                       label="Mobile No"
-                      // value={aircraftData.reg_no}
-                      // onChange={(event) => {
-                      //   handleInputChange("reg_no", event.target.value);
-                      // }}
-                      // error={Boolean(validationErrors.reg_no)}
-                      // helperText={validationErrors.reg_no}
+                      // value={crewData.mobileNo}
+                      onChange={(event) => {
+                        handleInputChange("mobileNo", event.target.value);
+                      }}
+                      // error={Boolean(validationErrors.mobileNo)}
+                      // helperText={validationErrors.mobileNo}
                     />
                   </Grid>
                   <Grid item xs={4} sm={6} md={6}>
@@ -528,12 +686,12 @@ export default function CreateCrew(props) {
                       size="small"
                       fullWidth
                       label="Email"
-                      // value={aircraftData.reg_no}
-                      // onChange={(event) => {
-                      //   handleInputChange("reg_no", event.target.value);
-                      // }}
-                      // error={Boolean(validationErrors.reg_no)}
-                      // helperText={validationErrors.reg_no}
+                      value={crewData.email}
+                      onChange={(event) => {
+                        handleInputChange("email", event.target.value);
+                      }}
+                      // error={Boolean(validationErrors.email)}
+                      // helperText={validationErrors.email}
                     />
                   </Grid>
                   <Grid item xs={4} sm={6} md={6}>
@@ -543,9 +701,10 @@ export default function CreateCrew(props) {
                         sx={{ p: 0, overflow: "visible" }}
                       >
                         <DatePicker
+                        format="DD/MM/YYYY"
                           label="Date Of Joining"
-                          value={value}
-                          onChange={(newValue) => setValue(newValue)}
+                          // value={crewData.dateOfJoining}
+                          onChange={(newValue) => handleInputChange("dateOfJoining",dayjs(newValue.$d).format('YYYY-MM-DD'))}
                           slotProps={{
                             textField: {
                               size: "small",
@@ -562,118 +721,118 @@ export default function CreateCrew(props) {
                       size="small"
                       fullWidth
                       label="Passport"
-                      // value={aircraftData.reg_no}
-                      // onChange={(event) => {
-                      //   handleInputChange("reg_no", event.target.value);
-                      // }}
-                      // error={Boolean(validationErrors.reg_no)}
-                      // helperText={validationErrors.reg_no}
+                      // value={crewData.passportNo}
+                      onChange={(event) => {
+                        handleInputChange("passportNo", event.target.value);
+                      }}
+                      // error={Boolean(validationErrors.passportNo)}
+                      // helperText={validationErrors.passportNo}
                     />
                   </Grid>
                   <Grid item xs={4} sm={12} md={12}>
-                    <Stack gap={'12px'}>
-                          <Typography variant="subtitle2">
-                            Applicable Models
-                          </Typography>
-                          <Autocomplete
-        multiple
-        id="tags-standard"
-        options={models}
-        getOptionLabel={(option) => option.title}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            // label="Models"
-            placeholder="+ Model"
-          />
-        )}
-      />
+                    <Stack gap={"12px"}>
+                      <Typography variant="subtitle2">
+                        Applicable Models
+                      </Typography>
+                      <Autocomplete
+                        multiple
+                        id="tags-standard"
+                        options={models}
+                        getOptionLabel={(option) => option.model_name}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            // label="Models"
+                            placeholder="+ Model"
+                          />
+                        )}
+                      />
                     </Stack>
                   </Grid>
                   <Grid item xs={4} sm={12} md={12}>
-                  <Stack gap={'12px'}>
-                          <Typography variant="subtitle2">
-                            Applicable Critical Airports
-                          </Typography>
-                          <Autocomplete
-        multiple
-        id="tags-standard"
-        options={models}
-        getOptionLabel={(option) => option.title}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            // label="Critical Airports"
-            placeholder="+ Critical airport"
-          />
-        )}
-      />
-                          </Stack>
+                    <Stack gap={"12px"}>
+                      <Typography variant="subtitle2">
+                        Applicable Critical Airports
+                      </Typography>
+                      <Autocomplete
+                        multiple
+                        id="tags-standard"
+                        options={criticalAirports}
+                        getOptionLabel={(option) => option.airport_name}
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            // label="Critical Airports"
+                            placeholder="+ Critical airport"
+                          />
+                        )}
+                      />
+                    </Stack>
                   </Grid>
                 </Grid>
               </Box>
             </Card>
           </Grid>
           <Grid item xs={12} md={12}>
-            <Card sx={{overflow:'visible'}}>
-            {/* <Divider sx={{ borderStyle: "dashed" }} /> */}
-            <Box flexGrow={1} p={2}>
-              <Grid container columnSpacing={3}>
-                <Grid item xs={6} md={8}></Grid>
-                <Grid item xs={3} md={2}>
-                  <SubmitButton
-                    fullWidth
-                    variant="contained"
-                    color="success"
-                    onClick={handleSubmitAircraft}
-                  >
-                    Save
-                  </SubmitButton>
-                </Grid>
-                <Grid item xs={3} md={2}>
-                  <Fragment>
-                    <Button
+            <Card sx={{ overflow: "visible" }}>
+              {/* <Divider sx={{ borderStyle: "dashed" }} /> */}
+              <Box flexGrow={1} p={2}>
+                <Grid container columnSpacing={3}>
+                  <Grid item xs={6} md={8}></Grid>
+                  <Grid item xs={3} md={2}>
+                    <SubmitButton
                       fullWidth
                       variant="contained"
-                      color="error"
-                      //  onClick={handleClickAlert}
-                      onClick={() => {
-                        handleTabChange("1");
-                      }}
+                      color="success"
+                      onClick={handleSubmitAircraft}
                     >
-                      Close
-                    </Button>
-                    <Dialog
-                      open={openAlert}
-                      TransitionComponent={Transition}
-                      keepMounted
-                      onClose={handleClickAlert}
-                      aria-describedby="alert-dialog-slide-description"
-                    >
-                      <DialogTitle>{"Are you sure?"}</DialogTitle>
-                      <DialogContent>
-                        <DialogContentText id="alert-dialog-slide-description">
-                          Created data and Changes you where made can't be
-                          save..!
-                        </DialogContentText>
-                      </DialogContent>
-                      <DialogActions>
-                        <Button
-                          color="error"
-                          onClick={() => {
-                            handleTabChange("1");
-                            handleClickAlert();
-                          }}
-                        >
-                          Ok
-                        </Button>
-                        <Button onClick={handleClickAlert}>Cancel</Button>
-                      </DialogActions>
-                    </Dialog>
-                  </Fragment>
+                      Save
+                    </SubmitButton>
+                  </Grid>
+                  <Grid item xs={3} md={2}>
+                    <Fragment>
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        color="error"
+                        //  onClick={handleClickAlert}
+                        onClick={() => {
+                          handleTabChange("1");
+                        }}
+                      >
+                        Close
+                      </Button>
+                      <Dialog
+                        open={openAlert}
+                        TransitionComponent={Transition}
+                        keepMounted
+                        onClose={handleClickAlert}
+                        aria-describedby="alert-dialog-slide-description"
+                      >
+                        <DialogTitle>{"Are you sure?"}</DialogTitle>
+                        <DialogContent>
+                          <DialogContentText id="alert-dialog-slide-description">
+                            Created data and Changes you where made can't be
+                            save..!
+                          </DialogContentText>
+                        </DialogContent>
+                        <DialogActions>
+                          <Button
+                            color="error"
+                            onClick={() => {
+                              handleTabChange("1");
+                              handleClickAlert();
+                            }}
+                          >
+                            Ok
+                          </Button>
+                          <Button onClick={handleClickAlert}>Cancel</Button>
+                        </DialogActions>
+                      </Dialog>
+                    </Fragment>
+                  </Grid>
                 </Grid>
-              </Grid>
-            </Box>
+              </Box>
             </Card>
           </Grid>
         </Grid>

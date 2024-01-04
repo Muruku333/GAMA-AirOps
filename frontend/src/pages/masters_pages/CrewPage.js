@@ -69,7 +69,11 @@ export default function DutyStatusDetailPage(props){
           />
           </TabPanel>
           <TabPanel value="2" sx={{padding:0}}>
-            <CreateCrew handleTabChange={handleTabChange} userData={userData} />
+          <CreateCrew
+            handleTabChange={handleTabChange}
+            setStatus={setStatus}
+            loggedUser={userData}
+          />
           </TabPanel>
           <TabPanel value="3" sx={{padding:0}}>
             <EditCrew handleTabChange={handleTabChange} idToEdit={crewId} userData={userData}/>

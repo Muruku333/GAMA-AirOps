@@ -306,7 +306,7 @@ export default function CreateAircraft(props) {
                   fullWidth
                   size="small"
                   getOptionLabel={(option)=> option.model_name}
-                  // value={models.find((_model)=>_model.model_id===aircraftData.modelId)}
+                  // value={models.find((_model)=>_model.model_id===aircraftData.modelId)|| null}
                   onChange={(event, newValue) => {
                     if(newValue){
                       handleInputChange("modelId", newValue.model_id);

@@ -3,6 +3,7 @@ const status = require("../../helpers/Response");
 const { validationResult } = require("express-validator");
 
 const CrewController = {
+
     createCrew: async (req, res) =>{
         let result;
         let crew_id;
@@ -11,11 +12,14 @@ const CrewController = {
             if (!errors.isEmpty()) {
               return status.ResponseStatus(res, 400, "Validation Failed", errors);
             }
-            const {operatorId, photo, name, code, nationality, city, designation, onDutyAs, countryCode, mobileNo, dateOfBirth, dateOfJoining, email, passportNo, notInService, notInServiceFrom, models, criticalAirports, createdBy}=req.body;
+
+            const {operatorId, photo, name, gender, code, nationality, city, designation, onDutyAs, countryCode, mobileNo, dateOfBirth, dateOfJoining, email, passportNo, notInService, notInServiceFrom, models, criticalAirports, createdBy}=req.body;
+            // console.log(photo);
             const crew ={
                 operator_id: operatorId,
                 photo,
                 name,
+                gender,
                 code,
                 nationality,
                 city,
@@ -77,11 +81,18 @@ const CrewController = {
         try {
             const crews = await CrewModel.getAllCrews();
             if(crews.length>0){
+                const crewList=crews.map((crew)=>{
+                    const base64data = Buffer.from(crew.photo, 'binary').toString();
+                    return {
+                        ...crew,
+                        photo:base64data,
+                    }
+                })
                 return status.ResponseStatus(
                     res,
                     200,
                     "List of all Crews",
-                    crews
+                    crewList
                   );
             }
             return status.ResponseStatus(res, 400, "No data found");
@@ -100,7 +111,8 @@ const CrewController = {
                 const models = await CrewModel.getAircraftModelsByCondition({crew_id});
                 const criticalAirports = await CrewModel.getCriticalAirportsByCondition({crew_id});
 
-                const base64data = Buffer.from(crew[0].photo, 'binary').toString('base64');
+                const base64data = Buffer.from(crew[0].photo, 'binary').toString();
+                console.log(base64data);
                 const crewData =[
                     {
                         ...crew[0],
@@ -132,7 +144,7 @@ const CrewController = {
                 return status.ResponseStatus(res, 400, "Validation Failed", errors);
             }
             const crew_id = req.params.crew_id;
-            const {operatorId, photo, name, code, nationality, city, designation, onDutyAs, countryCode, mobileNo, dateOfBirth, dateOfJoining, email, passportNo, notInService, notInServiceFrom, models, criticalAirports, modifiedBy}=req.body;
+            const {operatorId, photo, name, gender, code, nationality, city, designation, onDutyAs, countryCode, mobileNo, dateOfBirth, dateOfJoining, email, passportNo, notInService, notInServiceFrom, models, criticalAirports, modifiedBy}=req.body;
             let modelsResult;
             let airportsResult;
 
@@ -144,6 +156,7 @@ const CrewController = {
                 operator_id: operatorId,
                 photo,
                 name,
+                gender,
                 code,
                 nationality,
                 city,

@@ -8,6 +8,8 @@ router
   .get(airportController.getAllAirportsWithMappedData)
   .post(airportController.createAirport);
 
+router.route("/critical_airports").get(airportController.getAllCriticalAirports);
+
 router
   .route("/airports/:airport_id")
   .get(airportController.getAirportByAirportId)
