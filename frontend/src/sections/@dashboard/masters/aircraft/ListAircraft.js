@@ -356,7 +356,11 @@ const isNotFound = !filteredAircrafts.length && !!filterName;
                           </TableCell>
 
                         <TableCell align="left">
-                          {not_in_service?<Label color='error'>{`${new Date(not_in_service_from).toLocaleDateString("en-GB")}`}</Label>:null}
+                          {not_in_service?<Label color='error'>{`${new Date(not_in_service_from).toLocaleDateString("en-GB",{
+           day: '2-digit',
+           month: 'short',
+           year: 'numeric',
+       })}`}</Label>:null}
                         </TableCell>
 
                         <TableCell align="left">{last_arrival}</TableCell>

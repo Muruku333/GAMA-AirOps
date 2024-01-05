@@ -13,9 +13,11 @@ import {
   styled,
   Radio,
   RadioGroup,
+  Switch,
   FormControl,
   FormControlLabel,
   FormLabel,
+  FormGroup,
   TextField,
   Autocomplete,
   Chip,
@@ -29,7 +31,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Slide from "@mui/material/Slide";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import { DemoContainer, DemoItem } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -339,7 +341,7 @@ export default function CreateCrew(props) {
       <Box flexGrow={1}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ py: 14, px: 5, overflow: "visible" }}>
+            <Card sx={{ py: 10, px: 5, overflow: "visible", height:'100%' }}>
               <Box mb={5}>
                 <div>
                   <PhotoBox
@@ -409,7 +411,7 @@ export default function CreateCrew(props) {
                   </Typography>
                 </div>
               </Box>
-              <Stack gap={2} alignItems={"center"}>
+              <Stack gap={3} alignItems={"center"}>
                 <FormControl>
                   <FormLabel id="demo-row-radio-buttons-group-label">
                     Gender
@@ -435,7 +437,6 @@ export default function CreateCrew(props) {
                     />
                   </RadioGroup>
                 </FormControl>
-
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DemoContainer components={["DatePicker"]}>
                     <DatePicker
@@ -450,17 +451,67 @@ export default function CreateCrew(props) {
                       }
                       slotProps={{
                         textField: {
+                          fullWidth:true,
                           size: "small",
                         },
                       }}
                     />
                   </DemoContainer>
                 </LocalizationProvider>
+                <FormControl component="fieldset" fullWidth>
+                  <FormLabel component="legend">
+                    Not&nbsp;In&nbsp;Service
+                  </FormLabel>
+                  <FormGroup aria-label="position" row>
+                    <FormControlLabel
+                      value="top"
+                      control={
+                        <>
+                          <Switch
+                          disabled
+                            color="primary"
+                            checked={crewData.notInService}
+                            onChange={() => {
+                              handleInputChange(
+                                "notInService",
+                                !crewData.notInService
+                              );
+                            }}
+                            inputProps={{ "aria-label": "controlled" }}
+                          />
+                          <LocalizationProvider
+                            dateAdapter={AdapterDayjs}
+                          >
+                            <DemoContainer components={["DatePicker"]}>
+                              <DemoItem>
+                                <DatePicker
+                                  disabled={!crewData.notInService}
+                                  value={crewData.notInService ? crewData.notInServiceFrom : null}
+                                  slotProps={{
+                                    textField: {
+                                      fullWidth:true,
+                                      disabled:!crewData.notInService,
+                                      size: "small",
+                                      placeholder: "From",
+                                    },
+                                  }}
+                                  onChange={(newValue)=>{
+                                    handleInputChange('notInServiceFrom', newValue);
+                                  }}
+                                />
+                              </DemoItem>
+                            </DemoContainer>
+                          </LocalizationProvider>
+                        </>
+                      }
+                    />
+                  </FormGroup>
+                </FormControl>
               </Stack>
             </Card>
           </Grid>
           <Grid item xs={12} md={8}>
-            <Card sx={{ overflow: "visible" }}>
+            <Card sx={{ overflow: "visible", height:'100%' }}>
               <Box p={3} sx={{ flexGrow: 1 }}>
                 <Grid container spacing={3} columns={{ xs: 4, sm: 12, md: 12 }}>
                   <Grid item xs={4} sm={6} md={6}>

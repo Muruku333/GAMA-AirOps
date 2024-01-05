@@ -35,13 +35,14 @@ import AddIcon from '@mui/icons-material/Add';
 // Components -----------------------------------------------
 import { Helmet } from "react-helmet-async";
 import { LocalizationProvider } from "@mui/x-date-pickers";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import enIN from "date-fns/locale/en-IN";
 import { DemoContainer, DemoItem } from "@mui/x-date-pickers/internals/demo";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { fDate } from "../../../../utils/formatTime";
 import axios from "axios";
+
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -79,8 +80,8 @@ export default function EditAircraft(props) {
     timeFormat: null,
     // local_time: 0,
     // utc_time: 0,
-    blockOpeningHrs: null,
-    timeInAirOpeningHrs: null,
+    blockOpeningHrs: "",
+    timeInAirOpeningHrs: "",
     notInService: false,
     notInServiceFrom: null,
     freightCapacity: 0.0,
@@ -133,7 +134,7 @@ export default function EditAircraft(props) {
               blockOpeningHrs: block_opening_hrs,
               timeInAirOpeningHrs: time_in_air_opening_hrs,
               notInService: not_in_service,
-              notInServiceFrom: not_in_service_from,
+              notInServiceFrom: dayjs(not_in_service_from),
               freightCapacity: freight_capacity,
               unit,
             });
@@ -584,12 +585,13 @@ export default function EditAircraft(props) {
                             inputProps={{ "aria-label": "controlled" }}
                           />
                           <LocalizationProvider
-                            dateAdapter={AdapterDateFns}
+                            dateAdapter={AdapterDayjs}
                             adapterLocale={enIN}
                           >
                             <DemoContainer components={["DatePicker"]}>
                               <DemoItem>
                                 <DatePicker
+                                  format="DD/MM/YYYY"
                                   disabled={!aircraftData.notInService}
                                   value={
                                     aircraftData.notInService

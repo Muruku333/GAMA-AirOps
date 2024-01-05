@@ -112,13 +112,13 @@ const CrewController = {
             const crew = await CrewModel.getCrewByCondition({crew_id});
             if(crew.length>0){
                 const models = await CrewModel.getAircraftModelsByCondition({crew_id});
-                const criticalAirports = await CrewModel.getCriticalAirportsByCondition({crew_id});
+                const critical_airports = await CrewModel.getCriticalAirportsByCondition({crew_id});
 
                 let crewData =[
                     {
                         ...crew[0],
                         models,
-                        criticalAirports,
+                        critical_airports,
                     }
                 ];
 
@@ -128,7 +128,7 @@ const CrewController = {
                         {
                             ...crew[0],
                             models,
-                            criticalAirports,
+                            critical_airports,
                             photo:base64data,
                         }
                     ]
@@ -159,7 +159,7 @@ const CrewController = {
             const {operatorId, photo, name, gender, code, nationality, city, designation, onDutyAs, countryCode, mobileNo, dateOfBirth, dateOfJoining, email, passportNo, notInService, notInServiceFrom, models, criticalAirports, modifiedBy}=req.body;
             let modelsResult;
             let airportsResult;
-
+            console.log(req.body);
             const initialResult = await CrewModel.getCrewByCondition({crew_id});
             if(initialResult.length<1){
                 return status.ResponseStatus(res, 404, "Crew not found");
@@ -212,6 +212,7 @@ const CrewController = {
             }
             return status.ResponseStatus(res, 404, `Failed to update Crew`);
         } catch (error) {
+            console.log(error);
             return status.ResponseStatus(res, 500, "Internal server error", { error: error.message });
         }
     },

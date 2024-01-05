@@ -188,12 +188,25 @@ export default function EditCrew(props) {
       try {
         await axios.get(`${API_URL}/api/crews/${idToEdit}`).then((response)=>{
           if(response.data.status){
-            const { photo } = response.data.results[0];
-            setCrewData((pre)=>{
-              return {
-                ...pre,
-                photo: photo,
-              }
+            const { id,crew_id,operator_id,photo,name,gender,code,nationality,city,designation,on_duty_as,country_code,mobile_no,date_of_birth,date_of_joining,email,passport_no,not_in_service,not_in_service_from,models,critical_airports } = response.data.results[0];
+            setCrewData({
+              operatorId: operator_id,
+              photo,
+              name,
+              gender,
+              code,
+              nationality,
+              city,
+              designation,
+              onDutyAs:on_duty_as,
+              countryCode: country_code,
+              mobileNo: mobile_no,
+              dateOfBirth: dayjs(date_of_birth),
+              dateOfJoining: dayjs(date_of_joining),
+              email,
+              passportNo: passport_no,
+              notInService: Boolean(not_in_service),
+              notInServiceFrom: dayjs(not_in_service_from),
             });
           }
         }).catch((error)=>{
@@ -273,20 +286,17 @@ export default function EditCrew(props) {
       setValidationErrors(errors);
       return;
     }
-    console.log({
-      ...crewData,
-      photo: selectedPhoto,
-      createdBy: loggedUser.user_id,
-    });
     try {
       await axios
         .put(
-          `${API_URL}/api/crews`,
+          `${API_URL}/api/crews/${idToEdit}`,
           {
             ...crewData,
             models: selectedModels,
+            dateOfBirth:dayjs(crewData.dateOfBirth).format('YYYY-MM-DD'),
+            dateOfJoining:dayjs(crewData.dateOfJoining).format('YYYY-MM-DD'),
             criticalAirports: selectedAirports,
-            createdBy: loggedUser.user_id,
+            modifiedBy: loggedUser.user_id,
           }
           // { headers: { "Content-Type": "multipart/from-data" } }
         )
@@ -474,12 +484,9 @@ export default function EditCrew(props) {
                     <DatePicker
                       format="DD/MM/YYYY"
                       label="Date Of Birth"
-                      // value={crewData.dateOfBirth}
+                      value={crewData.dateOfBirth}
                       onChange={(newValue) =>
-                        handleInputChange(
-                          "dateOfBirth",
-                          dayjs(newValue.$d).format("YYYY-MM-DD")
-                        )
+                        handleInputChange("dateOfBirth",newValue)
                       }
                       slotProps={{
                         textField: {
@@ -565,7 +572,7 @@ export default function EditCrew(props) {
                     <Autocomplete
                       fullWidth
                       size="small"
-                      // value={countries.find((_country)=>_country.country_name = crewData.nationality)||null}
+                      value={countries.find((_country)=>_country.country_name = crewData.nationality)||null}
                       onChange={(event, newValue) => {
                         if (newValue) {
                           handleInputChange(
@@ -652,7 +659,7 @@ export default function EditCrew(props) {
                     <Autocomplete
                       fullWidth
                       size="small"
-                      // value={crewData.designation}
+                      value={crewData.designation}
                       onChange={(event, newValue) => {
                         handleInputChange("designation", newValue);
                       }}
@@ -677,7 +684,7 @@ export default function EditCrew(props) {
                     <Autocomplete
                       fullWidth
                       size="small"
-                      // value={crewData.onDutyAs}
+                      value={crewData.onDutyAs}
                       onChange={(event, newValue) => {
                         handleInputChange("onDutyAs", newValue);
                       }}
@@ -701,7 +708,7 @@ export default function EditCrew(props) {
                     <Autocomplete
                       fullWidth
                       size="small"
-                      // value={crewData.countryCode}
+                      value={crewData.countryCode}
                       onChange={(event, newValue) => {
                         handleInputChange("countryCode", newValue);
                       }}
@@ -727,7 +734,7 @@ export default function EditCrew(props) {
                       size="small"
                       fullWidth
                       label="Mobile No"
-                      // value={crewData.mobileNo}
+                      value={crewData.mobileNo}
                       onChange={(event) => {
                         handleInputChange("mobileNo", event.target.value);
                       }}
@@ -758,12 +765,9 @@ export default function EditCrew(props) {
                         <DatePicker
                           format="DD/MM/YYYY"
                           label="Date Of Joining"
-                          // value={crewData.dateOfJoining}
+                          value={crewData.dateOfJoining}
                           onChange={(newValue) =>
-                            handleInputChange(
-                              "dateOfJoining",
-                              dayjs(newValue.$d).format("YYYY-MM-DD")
-                            )
+                            handleInputChange("dateOfJoining",newValue)
                           }
                           slotProps={{
                             textField: {
@@ -781,7 +785,7 @@ export default function EditCrew(props) {
                       size="small"
                       fullWidth
                       label="Passport"
-                      // value={crewData.passportNo}
+                      value={crewData.passportNo}
                       onChange={(event) => {
                         handleInputChange("passportNo", event.target.value);
                       }}
