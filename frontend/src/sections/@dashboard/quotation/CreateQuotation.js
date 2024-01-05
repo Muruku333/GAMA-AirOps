@@ -1,71 +1,62 @@
 import React, { useEffect, useState } from "react";
 // import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import Card from "@mui/material/Card";
-import Tooltip from "@mui/material/Tooltip";
-import InputAdornment from "@mui/material/InputAdornment";
-import Button from "@mui/material/Button";
-import Icon from "@mui/material/Icon";
-import IconButton from "@mui/material/IconButton";
-import RemoveIcon from "@mui/icons-material/Remove";
+import AddIcon from "@mui/icons-material/Add";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ClearIcon from "@mui/icons-material/Clear";
-import AddIcon from "@mui/icons-material/Add";
-import MoreVertIcon from "@mui/icons-material/MoreVert";
-import VisibilityIcon from "@mui/icons-material/Visibility";
-import EditIcon from "@mui/icons-material/Edit";
-import DescriptionIcon from "@mui/icons-material/Description";
 import DoneIcon from "@mui/icons-material/Done";
+import EditIcon from "@mui/icons-material/Edit";
+import RemoveIcon from "@mui/icons-material/Remove";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import {
   Autocomplete,
   Box,
-  Container,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
-import Paper from "@mui/material/Paper";
-import Grid from "@mui/material/Grid";
-import Popper from "@mui/material/Popper";
-import PopupState, { bindTrigger, bindMenu } from "material-ui-popup-state";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
 import Fade from "@mui/material/Fade";
+import Grid from "@mui/material/Grid";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import Paper from "@mui/material/Paper";
+import Popper from "@mui/material/Popper";
+import Tooltip from "@mui/material/Tooltip";
+import { styled } from "@mui/material/styles";
+import axios from "axios";
 // import ResponsiveAppBar from "../../components/Header";
-import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
+import Tab from "@mui/material/Tab";
 import { LocalizationProvider } from "@mui/x-date-pickers";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 
-import { MobileDateTimePicker } from "@mui/x-date-pickers/MobileDateTimePicker";
-import { DateField } from "@mui/x-date-pickers/DateField";
-import dayjs from "dayjs";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
-import { DemoContainer, DemoItem } from "@mui/x-date-pickers/internals/demo";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DateField } from "@mui/x-date-pickers/DateField";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { DemoContainer, DemoItem } from "@mui/x-date-pickers/internals/demo";
+import { renderTimeViewClock } from '@mui/x-date-pickers/timeViewRenderers';
+import dayjs from "dayjs";
 
-import Table from "@mui/material/Table";
-import Menu from "@mui/material/Menu";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
+import DownloadDoneIcon from "@mui/icons-material/DownloadDone";
 import Divider from "@mui/material/Divider";
-import Select from "@mui/material/Select";
+import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell, { tableCellClasses } from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
 import TableFooter from "@mui/material/TableFooter";
-import TablePagination from "@mui/material/TablePagination";
+import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
-import DownloadDoneIcon from "@mui/icons-material/DownloadDone";
 import { getDistance } from "geolib";
 
 // import Hawker800XP from "./Images/Hawker800XP.png";
@@ -74,12 +65,11 @@ import { Template, generate } from "@pdfme/generator";
 import { saveAs } from "file-saver";
 
 import enIN from "date-fns/locale/en-IN";
-import MapWithMarkers from "./MapWithMarkers";
-import MapComponent from "./MapComponent";
 import { Helmet } from "react-helmet-async";
-import { categories, formatCurrency, removeCommas, paxDetails, getCoordinatesFromNominatim } from "./Utils";
+import MapComponent from "./MapComponent";
+import { categories, formatCurrency, getCoordinatesFromNominatim, paxDetails, removeCommas } from "./Utils";
 
-const googleMapsApiKey = ""; // google API Key
+const googleMapsApiKey = ""; // google API Ke
 
 const MAX_CATEGORY=700000;
 const MIN_CATEGORY=(categories[2].value/100) * 75;
