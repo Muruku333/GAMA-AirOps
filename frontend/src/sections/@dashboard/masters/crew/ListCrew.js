@@ -358,18 +358,22 @@ const isNotFound = !filteredCrews.length && !!filterName;
 
                         <TableCell align="left">{designation}</TableCell>
 
-                        <TableCell align="left">{`${new Date(date_of_birth).toLocaleDateString("en-GB",{
+                        <TableCell align="left">{date_of_birth?`${new Date(date_of_birth).toLocaleDateString("en-GB",{
            day: '2-digit',
            month: 'short',
            year: 'numeric',
-       })}`}</TableCell>
+       })}`:null}</TableCell>
 
 <TableCell align="left">
                           <Label color={not_in_service?'error':'success'}>{not_in_service?"No":"Yes"}</Label>
                           </TableCell>
 
                         <TableCell align="left">
-                          {not_in_service?<Label color='error'>{`${new Date(not_in_service_from).toLocaleDateString("en-GB")}`}</Label>:null}
+                          {not_in_service?<Label color='error'>{`${new Date(not_in_service_from).toLocaleDateString("en-GB",{
+           day: '2-digit',
+           month: 'short',
+           year: 'numeric',
+       })}`}</Label>:null}
                         </TableCell>
 
                         <TableCell align="right">

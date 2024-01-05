@@ -13,9 +13,11 @@ import {
   styled,
   Radio,
   RadioGroup,
+  Switch,
   FormControl,
   FormControlLabel,
   FormLabel,
+  FormGroup,
   TextField,
   Autocomplete,
   Chip,
@@ -29,7 +31,7 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
 import Slide from "@mui/material/Slide";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
+import { DemoContainer, DemoItem } from "@mui/x-date-pickers/internals/demo";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
@@ -43,6 +45,7 @@ import { Helmet } from "react-helmet-async";
 import Iconify from "../../../../components/iconify";
 import axios from "axios";
 import dayjs from "dayjs";
+import { set } from "lodash";
 
 const API_URL = process.env.REACT_APP_API_URL;
 
@@ -134,6 +137,8 @@ export default function EditCrew(props) {
   const [openAlert, setOpenAlert] = useState(false);
 
   useEffect(() => {
+    let applicableModels=[];
+    let criticalAirports=[];
     const fetchOperators = async () => {
       try {
         await axios.get(`${API_URL}/api/operators`).then((response) => {
@@ -169,9 +174,11 @@ export default function EditCrew(props) {
         await axios.get(`${API_URL}/api/aircraft_models`).then((response) => {
           // console.log(response.data);
           setModels(response.data.results);
+          applicableModels=response.data.results;
         });
       } catch (error) {
         setModels([]);
+        applicableModels=[];
       }
     };
     const fetchCriticalAirports = async () => {
@@ -179,16 +186,18 @@ export default function EditCrew(props) {
         await axios.get(`${API_URL}/api/critical_airports`).then((response) => {
           // console.log(response.data);
           setCriticalAirports(response.data.results);
+          criticalAirports=response.data.results;
         });
       } catch (error) {
         setCriticalAirports([]);
+        criticalAirports=[];
       }
     };
     const fetchData = async() =>{
       try {
         await axios.get(`${API_URL}/api/crews/${idToEdit}`).then((response)=>{
           if(response.data.status){
-            const { id,crew_id,operator_id,photo,name,gender,code,nationality,city,designation,on_duty_as,country_code,mobile_no,date_of_birth,date_of_joining,email,passport_no,not_in_service,not_in_service_from,models,critical_airports } = response.data.results[0];
+            const { id,crew_id,operator_id,photo,name,gender,code,nationality,city,designation,on_duty_as,country_code,mobile_no,date_of_birth,date_of_joining,email,passport_no,not_in_service,not_in_service_from, applicable_models,critical_airports } = response.data.results[0];
             setCrewData({
               operatorId: operator_id,
               photo,
@@ -208,6 +217,19 @@ export default function EditCrew(props) {
               notInService: Boolean(not_in_service),
               notInServiceFrom: dayjs(not_in_service_from),
             });
+
+            let modelIds=[];
+            let airportIds=[];
+            applicable_models.map((model)=>{
+              modelIds.push(model.model_id);
+            });
+            critical_airports.map((airport)=>{
+              airportIds.push(airport.airport_id);
+            })
+            // console.log(applicableModels);
+            // console.log(applicableModels.filter((model)=> modelIds.indexOf(model.model_id)!==-1))
+            setSelectedModels(applicableModels.filter((model)=> modelIds.indexOf(model.model_id)!==-1));
+            setSelectedAirports(criticalAirports.filter((airport)=> airportIds.indexOf(airport.airport_id)!==-1));
           }
         }).catch((error)=>{
           setStatus({
@@ -217,6 +239,7 @@ export default function EditCrew(props) {
           });
         });
       } catch (error) {
+        console.log(error);
         setStatus({
           open:true,
           type:'error',
@@ -295,6 +318,7 @@ export default function EditCrew(props) {
             models: selectedModels,
             dateOfBirth:dayjs(crewData.dateOfBirth).format('YYYY-MM-DD'),
             dateOfJoining:dayjs(crewData.dateOfJoining).format('YYYY-MM-DD'),
+            notInServiceFrom: crewData.notInService?dayjs(crewData.notInServiceFrom).format('YYYY-MM-DD'):null,
             criticalAirports: selectedAirports,
             modifiedBy: loggedUser.user_id,
           }
@@ -381,7 +405,7 @@ export default function EditCrew(props) {
       <Box flexGrow={1}>
         <Grid container spacing={2}>
           <Grid item xs={12} md={4}>
-            <Card sx={{ py: 14, px: 5, overflow: "visible" }}>
+            <Card sx={{ py: 10, px: 5, overflow: "visible",height:"100%" }}>
               <Box mb={5}>
                 <div>
                   <PhotoBox
@@ -496,11 +520,61 @@ export default function EditCrew(props) {
                     />
                   </DemoContainer>
                 </LocalizationProvider>
+
+                <FormControl component="fieldset" fullWidth>
+                  <FormLabel component="legend">
+                    Not&nbsp;In&nbsp;Service
+                  </FormLabel>
+                  <FormGroup aria-label="position" row>
+                    <FormControlLabel
+                      value="top"
+                      control={
+                        <>
+                          <Switch
+                          // disabled
+                            color="primary"
+                            checked={crewData.notInService}
+                            onChange={() => {
+                              handleInputChange(
+                                "notInService",
+                                !crewData.notInService
+                              );
+                            }}
+                            inputProps={{ "aria-label": "controlled" }}
+                          />
+                          <LocalizationProvider
+                            dateAdapter={AdapterDayjs}
+                          >
+                            <DemoContainer components={["DatePicker"]}>
+                              <DemoItem>
+                                <DatePicker
+                                  disabled={!crewData.notInService}
+                                  value={crewData.notInService ? crewData.notInServiceFrom : null}
+                                  slotProps={{
+                                    textField: {
+                                      fullWidth:true,
+                                      disabled:!crewData.notInService,
+                                      size: "small",
+                                      placeholder: "From",
+                                    },
+                                  }}
+                                  onChange={(newValue)=>{
+                                    handleInputChange('notInServiceFrom', newValue);
+                                  }}
+                                />
+                              </DemoItem>
+                            </DemoContainer>
+                          </LocalizationProvider>
+                        </>
+                      }
+                    />
+                  </FormGroup>
+                </FormControl>
               </Stack>
             </Card>
           </Grid>
           <Grid item xs={12} md={8}>
-            <Card sx={{ overflow: "visible" }}>
+            <Card sx={{ overflow: "visible" ,height:"100%"}}>
               <Box p={3} sx={{ flexGrow: 1 }}>
                 <Grid container spacing={3} columns={{ xs: 4, sm: 12, md: 12 }}>
                   <Grid item xs={4} sm={6} md={6}>
@@ -802,6 +876,7 @@ export default function EditCrew(props) {
                         multiple
                         id="tags-standard"
                         options={models}
+                        value={selectedModels}
                         getOptionLabel={(option) =>
                           `${option.model_name} (${option.wing_type})`
                         }
@@ -827,6 +902,7 @@ export default function EditCrew(props) {
                         multiple
                         id="tags-standard"
                         options={criticalAirports}
+                        value={selectedAirports}
                         getOptionLabel={(option) => option.airport_name}
                         onChange={(event, selectedValues) =>
                           setSelectedAirports(selectedValues)

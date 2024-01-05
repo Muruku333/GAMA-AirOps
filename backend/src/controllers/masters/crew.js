@@ -111,13 +111,13 @@ const CrewController = {
             const crew_id = req.params.crew_id;
             const crew = await CrewModel.getCrewByCondition({crew_id});
             if(crew.length>0){
-                const models = await CrewModel.getAircraftModelsByCondition({crew_id});
+                const applicable_models = await CrewModel.getAircraftModelsByCondition({crew_id});
                 const critical_airports = await CrewModel.getCriticalAirportsByCondition({crew_id});
 
                 let crewData =[
                     {
                         ...crew[0],
-                        models,
+                        applicable_models,
                         critical_airports,
                     }
                 ];
@@ -127,7 +127,7 @@ const CrewController = {
                     crewData=[
                         {
                             ...crew[0],
-                            models,
+                            applicable_models,
                             critical_airports,
                             photo:base64data,
                         }
